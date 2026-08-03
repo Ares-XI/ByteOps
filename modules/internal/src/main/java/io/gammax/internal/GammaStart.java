@@ -3,49 +3,25 @@ package io.gammax.internal;
 import io.gammax.internal.instrumentation.GammaClassLoader;
 import io.gammax.internal.instrumentation.GammaCacheRegistry;
 import io.gammax.internal.instrumentation.GammaTransformer;
-import io.gammax.internal.instrumentation.GammaJarCreator;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.stream.Stream;
 
+import static io.gammax.internal.util.ClassLoaderExtend.registerNatives;
+
 public class GammaStart {
-
-    private static Method addUrl;
-
-    private static List<Path> paths;
-
-    public static Method getAddUrl() {
-        return addUrl;
-    }
-
-    public static List<Path> getPaths() {
-        return paths;
-    }
-
     public static void premain(String agentArgs, Instrumentation inst) {
         System.out.println("=====================================");
-        System.out.println("|| GammaX started! Version: 1.0 beta");
+        System.out.println("|| GammaX started! Version: 1.0 alpha");
         System.out.println("=====================================");
 
         registerLibraries();
+        registerNatives();
         registerClose();
-
-        try {
-            paths = GammaJarCreator.createAllMixinJars();
-            addUrl = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            addUrl.setAccessible(true);
-        } catch (IOException | NoSuchMethodException e) {
-            e.printStackTrace(System.err);
-        }
 
         GammaCacheRegistry.instance.loadCache();
         inst.addTransformer(GammaTransformer.instance);
@@ -69,12 +45,12 @@ public class GammaStart {
         }
     }
 
-    private static void registerClose() { //TODO TODO
+    private static void registerClose() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 GammaCacheRegistry.instance.clearCache();
                 GammaClassLoader.instance.close();
-                File cacheDir = new File("mixin/.cache");
+                File cacheDir = new File("mixin/.cache"); //TODO will be change
                 if (cacheDir.exists()) deleteRecursively(cacheDir);
             } catch (Exception e) {
                 e.printStackTrace(System.err);

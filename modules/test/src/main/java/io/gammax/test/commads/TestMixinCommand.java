@@ -77,6 +77,11 @@ public class TestMixinCommand implements CommandExecutor {
             sender.sendMessage("§7getLastOperation(): " + access.getLastOperation());
             sender.sendMessage("§7isZeroS(): " + access.isZeroS());
 
+            sender.sendMessage("§7setOperationCount(10)");
+            access.setOperationCount(10);
+            sender.sendMessage("§7setLastOperation(\"someOperation\")");
+            access.setLastOperation("someOperation");
+
             vec.multiply(2);
             sender.sendMessage("§7После multiply(2): " + vec);
 
@@ -124,7 +129,6 @@ public class TestMixinCommand implements CommandExecutor {
             BoundingBoxAccess access = (BoundingBoxAccess) box;
 
             sender.sendMessage("§7getDimensions(): " + access.getDimensions());
-            sender.sendMessage("§7getCheckCount(): " + access.getCheckCount());
 
             access.expandSymmetrical(1.0);
             sender.sendMessage("§7После expandSymmetrical(1): " + access.getDimensions());
@@ -142,7 +146,7 @@ public class TestMixinCommand implements CommandExecutor {
             sender.sendMessage("§7Объём: " + volume);
 
             sender.sendMessage("§7getDimensions() после: " + access.getDimensions());
-            sender.sendMessage("§7getCheckCount(): " + access.getCheckCount());
+            sender.sendMessage("§7getData(): " + access.getData());
 
         } catch (ClassCastException e) {
             sender.sendMessage("§cИнтерфейс BoundingBoxAccess не найден, используем рефлексию");

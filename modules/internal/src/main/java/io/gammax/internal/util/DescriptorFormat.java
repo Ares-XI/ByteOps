@@ -3,13 +3,14 @@ package io.gammax.internal.util;
 import io.gammax.api.util.Signature;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-public class DescriptorFormat {
+public final class DescriptorFormat {
     public static int getAccessModifiers(Field field) {
         int modifiers = field.getModifiers();
         int access = 0;
@@ -93,6 +94,20 @@ public class DescriptorFormat {
         }
         desc.append(")").append(getDescriptor(returnType));
         return desc.toString();
+    }
+
+    public static boolean isReturnPoint(AbstractInsnNode insn) {
+        int opcode = insn.getOpcode();
+        return opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN;
+    }
+
+    public static int getReturnOpcode(Type type) {
+        if (type == Type.VOID_TYPE) return Opcodes.RETURN;
+        if (type == Type.BOOLEAN_TYPE || type == Type.BYTE_TYPE || type == Type.CHAR_TYPE || type == Type.SHORT_TYPE || type == Type.INT_TYPE) return Opcodes.IRETURN;
+        if (type == Type.LONG_TYPE) return Opcodes.LRETURN;
+        if (type == Type.FLOAT_TYPE) return Opcodes.FRETURN;
+        if (type == Type.DOUBLE_TYPE) return Opcodes.DRETURN;
+        return Opcodes.ARETURN;
     }
 
     private DescriptorFormat() {}

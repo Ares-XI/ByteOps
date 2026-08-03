@@ -1,17 +1,17 @@
 package io.gammax.internal.format.functional;
 
-import io.gammax.internal.format.groups.FunctionalModifier;
+import io.gammax.internal.format.FunctionalModifier;
 import io.gammax.internal.util.DescriptorFormat;
 import org.objectweb.asm.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-public class UniqueField implements FunctionalModifier {
+public class ExtendField implements FunctionalModifier {
     private final Field field;
     private Object constantValue;
 
-    public UniqueField(Field field) {
+    public ExtendField(Field field) {
         this.field = field;
         if (Modifier.isStatic(field.getModifiers()) && Modifier.isFinal(field.getModifiers())) extractConstantValue();
     }

@@ -1,4 +1,4 @@
-package io.gammax.internal.format.groups;
+package io.gammax.internal.format;
 
 public interface FunctionalModifier {
     byte[] modify(byte[] bytecode);

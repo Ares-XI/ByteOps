@@ -8,7 +8,7 @@ import org.objectweb.asm.tree.*;
 
 import java.util.*;
 
-public class UniqueMethodVisitor extends MethodVisitor {
+public class ExtendMethodVisitor extends MethodVisitor {
 
     public InsnList instructions;
     public final List<TryCatchBlockNode> tryCatchBlocks = new ArrayList<>();
@@ -21,7 +21,7 @@ public class UniqueMethodVisitor extends MethodVisitor {
     public int maxLocals;
     public int maxStack;
 
-    public UniqueMethodVisitor() {
+    public ExtendMethodVisitor() {
         super(Opcodes.ASM9);
     }
 

@@ -5,4 +5,6 @@ public interface VectorAccess {
     String getStats();
     int getOperationCount();
     String getLastOperation();
+    void setOperationCount(int count);
+    void setLastOperation(String operation);
 }

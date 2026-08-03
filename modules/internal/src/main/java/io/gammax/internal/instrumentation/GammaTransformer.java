@@ -1,28 +1,21 @@
 package io.gammax.internal.instrumentation;
 
-import io.gammax.internal.GammaStart;
 import io.gammax.internal.format.*;
 import io.gammax.internal.format.functional.InjectMethod;
 import io.gammax.internal.format.functional.InterfaceImplementation;
-import io.gammax.internal.format.functional.UniqueField;
-import io.gammax.internal.format.functional.UniqueMethod;
+import io.gammax.internal.format.functional.ExtendField;
+import io.gammax.internal.format.functional.ExtendMethod;
+import io.gammax.internal.util.ClassLoaderExtend;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
 import java.security.ProtectionDomain;
 import java.util.*;
-import java.util.jar.JarFile;
 
 public class GammaTransformer implements ClassFileTransformer {
 
     public static final GammaTransformer instance = new GammaTransformer();
 
     private static final List<String> unsupportedPaths = new ArrayList<>();
-
-    private static boolean isUnlock = false;
 
     static {
         unsupportedPaths.add("java/");
@@ -45,37 +38,19 @@ public class GammaTransformer implements ClassFileTransformer {
         if(className == null) return null;
         for(String str: unsupportedPaths) if(className.startsWith(str)) return null;
 
-        if ((className.startsWith("org/bukkit/") || className.startsWith("net/minecraft/server/")) && !isUnlock) {
-            for (Path path : GammaStart.getPaths()) {
-                try (JarFile jarFile = new JarFile(String.valueOf(path))) {
-                    GammaStart.getAddUrl().setAccessible(true);
-                    GammaStart.getAddUrl().invoke(loader, path.toUri().toURL());
-                    GammaStart.getAddUrl().setAccessible(false);
-                    System.out.println("Added to classloader: " + jarFile.getName());
-                } catch (IOException | IllegalAccessException | InvocationTargetException e) {
-                    System.err.println("Failed to add JAR to classloader: " + path);
-                    e.printStackTrace(System.err);
-                } finally {
-                    isUnlock = true;
-                }
-            }
-
-            System.out.println("System loader getted");
-            System.out.println("class of getted: " + className);
-            System.out.println("parent: " + loader.getParent().getParent());
-        }
-
         if(GammaCacheRegistry.instance.isTargetPath(className.replace("/", "."))) {
-            for (MixinClass mixin : GammaCacheRegistry.instance.getCache()) {
+            for (ModifyClass mixin : GammaCacheRegistry.instance.getCache()) {
                 if (mixin.getTargetClass().getName().replace('.', '/').equals(className)) {
-                    List<InjectMethod> injectors = Arrays.asList(mixin.injectMethods);
+                    List<InjectMethod> injectors = Arrays.asList(mixin.getInjectors());
                     injectors.sort(Comparator.comparingInt(InjectMethod::getPriority));
 
-                    for (UniqueField uniqueField : mixin.uniqueFields) bytecode = uniqueField.modify(bytecode);
-                    for (UniqueMethod injectMethod : mixin.uniqueMethods) bytecode = injectMethod.modify(bytecode);
+                    for (ExtendField extendField : mixin.getExtendFields()) bytecode = extendField.modify(bytecode);
+                    for (ExtendMethod extendMethod : mixin.getExtendMethods()) bytecode = extendMethod.modify(bytecode);
                     for (InjectMethod injectMethod : injectors) bytecode = injectMethod.modify(bytecode);
-                    for (InterfaceImplementation implementation: mixin.interfaceImplementations) {
+                    for (InterfaceImplementation implementation: mixin.getImplementations()) {
                         bytecode = implementation.modify(bytecode);
+                        byte[] implementationBytecode = GammaClassLoader.instance.getClassBytes(implementation.getInterfaceClass().getName());
+                        ClassLoaderExtend.defineClass(loader, implementation.getInterfaceClass().getName(), implementationBytecode, 0, implementationBytecode.length, protectionDomain);
                     }
 
                     return bytecode;
@@ -84,27 +59,6 @@ public class GammaTransformer implements ClassFileTransformer {
         }
 
         return null;
-    }
-
-    private List<File> findJarFilesRecursively(File rootDir) {
-        List<File> jarFiles = new ArrayList<>();
-        if (!rootDir.exists() || !rootDir.isDirectory()) {
-            return jarFiles;
-        }
-
-        File[] files = rootDir.listFiles();
-        if (files == null) return jarFiles;
-
-        for (File file : files) {
-            if (file.isDirectory()) {
-                // Рекурсивно обходим поддиректории
-                jarFiles.addAll(findJarFilesRecursively(file));
-            } else if (file.isFile() && file.getName().toLowerCase().endsWith(".jar")) {
-                jarFiles.add(file);
-            }
-        }
-
-        return jarFiles;
     }
 
     private GammaTransformer() {}

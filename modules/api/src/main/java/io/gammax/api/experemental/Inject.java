@@ -1,4 +1,4 @@
-package io.gammax.api;
+package io.gammax.api.experemental;
 
 import io.gammax.api.util.At;
 import io.gammax.api.util.Signature;
@@ -19,11 +19,11 @@ public @interface Inject {
 
     Signature signature() default @Signature;
 
-    TargetReference reference() default @TargetReference;
-
-    Mode mode() default Mode.BEFORE;
-
-    int index() default 0;
-
     int priority() default 0;
+
+//    TargetReference reference() default @TargetReference;
+
+//    Mode mode() default Mode.BEFORE;
+
+//    int index() default 0;
 }

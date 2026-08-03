@@ -4,5 +4,5 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GammaConfigFormat {
-    public List<String> mixins = new ArrayList<>();
+    public List<String> modify = new ArrayList<>();
 }

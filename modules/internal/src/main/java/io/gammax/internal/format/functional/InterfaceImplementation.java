@@ -1,7 +1,6 @@
 package io.gammax.internal.format.functional;
 
-import io.gammax.internal.format.groups.FunctionalModifier;
-import io.gammax.internal.instrumentation.GammaClassLoader;
+import io.gammax.internal.format.FunctionalModifier;
 import io.gammax.internal.util.DescriptorFormat;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
@@ -16,11 +15,10 @@ public class InterfaceImplementation implements FunctionalModifier {
 
     public InterfaceImplementation(Class<?> interfaceClass) {
         this.interfaceClass = interfaceClass;
-        try {
-            GammaClassLoader.instance.loadClass(interfaceClass.getName());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace(System.err);
-        }
+    }
+
+    public Class<?> getInterfaceClass() {
+        return interfaceClass;
     }
 
     @Override

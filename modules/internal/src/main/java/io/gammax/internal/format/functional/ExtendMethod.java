@@ -1,27 +1,27 @@
 package io.gammax.internal.format.functional;
 
-import io.gammax.internal.format.groups.FunctionalModifier;
-import io.gammax.internal.format.data.ShadowField;
-import io.gammax.internal.format.data.ShadowMethod;
+import io.gammax.internal.format.FunctionalModifier;
+import io.gammax.internal.format.data.ProvideField;
+import io.gammax.internal.format.data.ProvideMethod;
 import io.gammax.internal.instrumentation.GammaClassLoader;
 import io.gammax.internal.util.DescriptorFormat;
-import io.gammax.internal.util.visitor.UniqueMethodVisitor;
+import io.gammax.internal.util.visitor.ExtendMethodVisitor;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
 
-public class UniqueMethod implements FunctionalModifier {
+public class ExtendMethod implements FunctionalModifier {
     private final Method method;
     private final Class<?> targetClass;
 
     private InsnList instructions;
-    public UniqueMethodVisitor visitor;
+    public ExtendMethodVisitor visitor;
 
-    public UniqueMethod(Method method, Class<?> targetClass, ShadowField[] shadowFields, ShadowMethod[] shadowMethods, UniqueField[] uniqueFields, UniqueMethod[] uniqueMethods) {
+    public ExtendMethod(Method method, Class<?> targetClass, ProvideField[] shadowFields, ProvideMethod[] shadowMethods, ExtendField[] uniqueFields, ExtendMethod[] uniqueMethods) {
         this.method = method;
         this.targetClass = targetClass;
-        this.visitor = new UniqueMethodVisitor();
+        this.visitor = new ExtendMethodVisitor();
 
         buildFieldMap(shadowFields, uniqueFields);
         buildMethodMap(shadowMethods, uniqueMethods);
@@ -31,33 +31,33 @@ public class UniqueMethod implements FunctionalModifier {
         return method;
     }
 
-    public void updateMethodMap(UniqueMethod[] allUniqueMethods) {
+    public void updateMethodMap(ExtendMethod[] allUniqueMethods) {
         String targetName = targetClass.getName().replace('.', '/');
 
-        for (UniqueMethod um : allUniqueMethods) {
+        for (ExtendMethod um : allUniqueMethods) {
             String key = um.getMethod().getName() + ":" + DescriptorFormat.getMethodDescriptor(um.getMethod());
             visitor.methodMap.put(key, targetName);
         }
         extractMethodInstructions();
     }
 
-    private void buildFieldMap(ShadowField[] shadowFields, UniqueField[] uniqueFields) {
-        for (ShadowField sf : shadowFields) {
+    private void buildFieldMap(ProvideField[] shadowFields, ExtendField[] uniqueFields) {
+        for (ProvideField sf : shadowFields) {
             String key = sf.field().getName() + ":" + DescriptorFormat.getDescriptor(sf.field().getType());
             visitor.fieldMap.put(key, targetClass.getName().replace('.', '/'));
         }
-        for (UniqueField uf : uniqueFields) {
+        for (ExtendField uf : uniqueFields) {
             String key = uf.getField().getName() + ":" + DescriptorFormat.getDescriptor(uf.getField().getType());
             visitor.fieldMap.put(key, targetClass.getName().replace('.', '/'));
         }
     }
 
-    private void buildMethodMap(ShadowMethod[] shadowMethods, UniqueMethod[] uniqueMethods) {
-        for (ShadowMethod sm : shadowMethods) {
+    private void buildMethodMap(ProvideMethod[] shadowMethods, ExtendMethod[] uniqueMethods) {
+        for (ProvideMethod sm : shadowMethods) {
             String key = sm.method().getName() + ":" + DescriptorFormat.getMethodDescriptor(sm.method());
             visitor.methodMap.put(key, targetClass.getName().replace('.', '/'));
         }
-        for (UniqueMethod um: uniqueMethods) {
+        for (ExtendMethod um: uniqueMethods) {
             String key = um.getMethod().getName() + ":" + DescriptorFormat.getMethodDescriptor(um.getMethod());
             visitor.methodMap.put(key, targetClass.getName().replace('.', '/'));
         }
@@ -72,7 +72,7 @@ public class UniqueMethod implements FunctionalModifier {
             reader.accept(new ClassVisitor(Opcodes.ASM9) {
                 @Override
                 public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                    if (name.equals(UniqueMethod.this.method.getName()) && desc.equals(DescriptorFormat.getMethodDescriptor(method))) {
+                    if (name.equals(ExtendMethod.this.method.getName()) && desc.equals(DescriptorFormat.getMethodDescriptor(method))) {
                         return visitor;
                     }
                     return null;

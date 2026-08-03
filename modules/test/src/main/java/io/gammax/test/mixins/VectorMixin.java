@@ -1,125 +1,64 @@
 package io.gammax.test.mixins;
 
-import io.gammax.api.*;
-import io.gammax.api.util.At;
-import io.gammax.api.util.Mode;
-import io.gammax.api.util.Signature;
+import io.gammax.api.Extend;
+import io.gammax.api.Modify;
+import io.gammax.api.Provide;
 import io.gammax.test.access.VectorAccess;
 import org.bukkit.util.Vector;
 
-@Mixin(Vector.class)
+@Modify(Vector.class)
 public abstract class VectorMixin implements VectorAccess {
-
-    @Shadow
+    @Provide
     protected double x;
 
-    @Shadow
+    @Provide
     protected double y;
 
-    @Shadow
+    @Provide
     protected double z;
 
-    @Unique
+    @Extend
     private int operationCount;
 
-    @Unique
+    @Extend
     public static final double EPSILON = 0.0001;
 
-    @Unique
+    @Extend
     private String lastOperation;
 
     @Override
-    @Unique
+    @Extend
     public boolean isZeroS() {
         return Math.abs(x) < EPSILON && Math.abs(y) < EPSILON && Math.abs(z) < EPSILON;
     }
 
     @Override
-    @Unique
+    @Extend
     public String getStats() {
         return String.format("Vector{ops=%d, last='%s', pos=(%.2f,%.2f,%.2f)}", operationCount, lastOperation, x, y, z);
     }
 
     @Override
-    @Unique
+    @Extend
     public int getOperationCount() {
         return operationCount;
     }
 
     @Override
-    @Unique
+    @Extend
+    public void setOperationCount(int count) {
+        operationCount = count;
+    }
+
+    @Override
+    @Extend
     public String getLastOperation() {
         return lastOperation;
     }
 
-    @Unique
-    private void incrementCount(String operation) {
-        operationCount++;
+    @Override
+    @Extend
+    public void setLastOperation(String operation) {
         lastOperation = operation;
-        System.out.println("[Vector] Operation #" + operationCount + ": " + operation);
-    }
-
-    @Inject(
-            method = "multiply",
-            at = At.HEAD,
-            signature = @Signature(
-                    parameters = double.class,
-                    result = Vector.class
-            )
-    )
-    private void onMultiply(@Arg(0) double m) {
-        incrementCount("multiply(" + m + ")");
-        System.out.println("[Inject HEAD] Multiplying by " + m);
-    }
-
-    @Inject(
-            method = "length",
-            at = At.HEAD,
-            mode = Mode.CANSEL,
-            signature = @Signature(result = double.class)
-    )
-    private double onLength() {
-        double len = Math.sqrt(x*x + y*y + z*z);
-        if (len < EPSILON) {
-            System.out.println("[Inject RETURN] Zero-length detected, returning 0");
-            return 0.0;
-        }
-        System.out.println("[Inject RETURN] Length = " + len);
-        return len;
-    }
-
-    @Inject(
-            method = "clone",
-            at = At.HEAD,
-            signature = @Signature(result = Vector.class)
-    )
-    private void onClone() {
-        System.out.println("[Inject HEAD] Cloning vector");
-    }
-
-    @Inject(
-            method = "add",
-            at = At.HEAD,
-            signature = @Signature(
-                    parameters = Vector.class,
-                    result = Vector.class
-            )
-    )
-    private void onAdd(@Arg(0) Vector other) {
-        incrementCount("add(" + other + ")");
-        System.out.println("[Inject HEAD] Adding " + other);
-    }
-
-    @Inject(
-            method = "multiply",
-            at = At.RETURN,
-            mode = Mode.AFTER,
-            signature = @Signature(
-                    parameters = Vector.class,
-                    result = Vector.class
-            )
-    )
-    private void onMultiplyAfter() {
-        System.out.println("[Inject AFTER] Result: (" + x + ", " + y + ", " + z + ")");
     }
 }

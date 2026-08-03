@@ -14,7 +14,7 @@ public class GammaJsonParser {
 
     private final Gson GSON = new Gson();
 
-    public List<GammaConfigFormat> loadAllMixinConfigs() {
+    public List<GammaConfigFormat> loadAllModifyConfigs() {
         List<GammaConfigFormat> result = new ArrayList<>();
 
         File pluginsDir = new File("plugins");

@@ -8,7 +8,7 @@ import java.util.*;
 
 public class InjectMethodVisitor extends MethodVisitor {
     private final String targetName;
-    private final String mixinName;
+    private final String modifyName;
     private final Map<String, String> fieldMap;
     private final Map<String, String> methodMap;
 
@@ -23,7 +23,7 @@ public class InjectMethodVisitor extends MethodVisitor {
     public InjectMethodVisitor(Method method, Class<?> targetClass, Map<String, String> fieldMap, Map<String, String> methodMap) {
         super(Opcodes.ASM9);
         this.targetName = targetClass.getName().replace('.', '/');
-        this.mixinName = method.getDeclaringClass().getName().replace('.', '/');
+        this.modifyName = method.getDeclaringClass().getName().replace('.', '/');
         this.fieldMap = fieldMap;
         this.methodMap = methodMap;
     }
@@ -45,7 +45,7 @@ public class InjectMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
-        if (type.equals(mixinName)) type = targetName;
+        if (type.equals(modifyName)) type = targetName;
         insnList.add(new TypeInsnNode(opcode, type));
     }
 
@@ -54,7 +54,7 @@ public class InjectMethodVisitor extends MethodVisitor {
         String key = name + ":" + desc;
         String newOwner = fieldMap.get(key);
         if (newOwner != null) insnList.add(new FieldInsnNode(opcode, newOwner, name, desc));
-        else if (owner.equals(mixinName)) insnList.add(new FieldInsnNode(opcode, targetName, name, desc));
+        else if (owner.equals(modifyName)) insnList.add(new FieldInsnNode(opcode, targetName, name, desc));
         else insnList.add(new FieldInsnNode(opcode, owner, name, desc));
     }
 
@@ -63,7 +63,7 @@ public class InjectMethodVisitor extends MethodVisitor {
         String key = name + ":" + desc;
         String newOwner = methodMap.get(key);
         if (newOwner != null) insnList.add(new MethodInsnNode(opcode, newOwner, name, desc, itf));
-        else if (owner.equals(mixinName)) insnList.add(new MethodInsnNode(opcode, targetName, name, desc, itf));
+        else if (owner.equals(modifyName)) insnList.add(new MethodInsnNode(opcode, targetName, name, desc, itf));
         else insnList.add(new MethodInsnNode(opcode, owner, name, desc, itf));
     }
 
@@ -84,7 +84,7 @@ public class InjectMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitLdcInsn(Object value) {
-        if (value instanceof Type t && t.getInternalName().equals(mixinName)) value = Type.getObjectType(targetName);
+        if (value instanceof Type t && t.getInternalName().equals(modifyName)) value = Type.getObjectType(targetName);
         insnList.add(new LdcInsnNode(value));
     }
 
@@ -111,13 +111,13 @@ public class InjectMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitMultiANewArrayInsn(String desc, int dims) {
-        if (desc.contains(mixinName)) desc = desc.replace(mixinName, targetName);
+        if (desc.contains(modifyName)) desc = desc.replace(modifyName, targetName);
         insnList.add(new MultiANewArrayInsnNode(desc, dims));
     }
 
     @Override
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
-        if (type != null && type.equals(mixinName)) type = targetName;
+        if (type != null && type.equals(modifyName)) type = targetName;
         tryCatchBlocks.add(new TryCatchBlockNode(
                 new LabelNode(start),
                 new LabelNode(end),

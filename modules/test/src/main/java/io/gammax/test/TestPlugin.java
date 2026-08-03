@@ -8,5 +8,4 @@ public final class TestPlugin extends JavaPlugin {
     public void onEnable() {
         getCommand("test-mixin").setExecutor(new TestMixinCommand());
     }
-
 }

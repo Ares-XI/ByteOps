@@ -1,38 +1,42 @@
 package io.gammax.test.mixins;
 
-import io.gammax.api.*;
-import io.gammax.api.util.At;
-import io.gammax.api.util.Signature;
+import io.gammax.api.Extend;
+import io.gammax.api.Modify;
+import io.gammax.api.Provide;
 import org.bukkit.util.NumberConversions;
 
-@Mixin(NumberConversions.class)
+@Modify(NumberConversions.class)
 public abstract class NumberConversionsMixin {
-
-    @Shadow
+    @Provide
     public static native int floor(double num);
 
-    @Unique
-    private static int floorCallCount = 0;
+    @Extend
+    private static int floorCallCount;
 
-    @Inject(
-            method = "floor",
-            at = At.HEAD,
-            signature = @Signature(
-                    parameters = double.class,
-                    result = int.class
-            )
-    )
-    private static void onFloor(@Arg(0) double num) {
-        floorCallCount++;
-        System.out.println("[Inject HEAD] floor() called with " + num + " (total calls: " + floorCallCount + ")");
-    }
+//    @Inject(
+//            method = "floor",
+//            at = At.HEAD,
+//            signature = @Signature(
+//                    parameters = double.class,
+//                    result = int.class
+//            )
+//    )
+//    private static void onFloor(@Arg(0) double num) {
+//        floorCallCount++;
+//        System.out.println("[Inject HEAD] floor() called with " + num + " (total calls: " + floorCallCount + ")");
+//    }
 
-    @Unique
+    @Extend
     public static void resetCount() {
         floorCallCount = 0;
     }
 
-    @Unique
+    @Extend
+    public static void addCount() {
+        floorCallCount++;
+    }
+
+    @Extend
     public static int getFloorCalls() {
         return floorCallCount;
     }
