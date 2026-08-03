@@ -21,7 +21,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
-public class GammaCacheRegistry {
+public final class GammaCacheRegistry {
     public static final GammaCacheRegistry instance = new GammaCacheRegistry();
 
     private final Set<ModifyClass> modifyClasses = new HashSet<>();
@@ -51,14 +51,21 @@ public class GammaCacheRegistry {
         }
 
         for(GammaConfigFormat format: parsed) {
+            for (String path: format.classpath) {
+                try {
+                   GammaClassLoader.instance.registerClassToDefine(GammaClassLoader.instance.loadClass(path));
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e); //TODO catch with custom exception
+                }
+            }
             for(String path: format.modify) {
                 try {
                     System.out.println(path);
                     Class<?> modifyClass = GammaClassLoader.instance.loadClass(path);
 
-                    if(modifyClass.isAnnotation() || modifyClass.isInterface() || modifyClass.isEnum()) throw new IllegalArgumentException("@Modify class must be abstract");
-                    if(!Modifier.isAbstract(modifyClass.getModifiers())) throw new IllegalArgumentException("@Modify class must be abstract");
-                    if(!modifyClass.isAnnotationPresent(Modify.class)) throw new IllegalArgumentException("class must be annotated by @Modify");
+                    if(modifyClass.isAnnotation() || modifyClass.isInterface() || modifyClass.isEnum()) throw new IllegalArgumentException("@Modify class must be abstract"); //TODO catch with custom exception
+                    if(!Modifier.isAbstract(modifyClass.getModifiers())) throw new IllegalArgumentException("@Modify class must be abstract"); //TODO catch with custom exception
+                    if(!modifyClass.isAnnotationPresent(Modify.class)) throw new IllegalArgumentException("class must be annotated by @Modify"); //TODO catch with custom exception
 
                     List<ProvideField> provideFields = new ArrayList<>();
                     List<ProvideMethod> provideMethods = new ArrayList<>();
@@ -76,7 +83,7 @@ public class GammaCacheRegistry {
                         try {
                             GammaClassLoader.instance.loadClass(interfaceClass.getName());
                         } catch (ClassNotFoundException e) {
-                            e.printStackTrace(System.err);
+                            e.printStackTrace(System.err); //TODO catch with custom exception
                         }
 
                         interfaceImplementationList.add(new InterfaceImplementation(interfaceClass));
@@ -84,7 +91,7 @@ public class GammaCacheRegistry {
 
                     for(Field field: modifyClass.getDeclaredFields()) {
                         if(field.isAnnotationPresent(Provide.class) && field.isAnnotationPresent(Extend.class)) {
-                            new IllegalArgumentException("field cannot be annotated by @Provide and @Extend").printStackTrace(System.err);
+                            new IllegalArgumentException("field cannot be annotated by @Provide and @Extend").printStackTrace(System.err); //TODO catch with custom exception
                         }
                         if(field.isAnnotationPresent(Provide.class)) provideFields.add(new ProvideField(field));
                         if(field.isAnnotationPresent(Extend.class)) extendFields.add(new ExtendField(field));
@@ -92,13 +99,13 @@ public class GammaCacheRegistry {
 
                     for(Method method: modifyClass.getDeclaredMethods()) {
                         if(method.isAnnotationPresent(Provide.class) && method.isAnnotationPresent(Extend.class)) {
-                            new IllegalArgumentException("method cannot be annotated by @Provide and @Extend").printStackTrace(System.err);
+                            new IllegalArgumentException("method cannot be annotated by @Provide and @Extend").printStackTrace(System.err); //TODO catch with custom exception
                         }
                         if(method.isAnnotationPresent(Provide.class) && method.isAnnotationPresent(Inject.class)) {
-                            new IllegalArgumentException("method cannot be annotated by @Provide and @Inject").printStackTrace(System.err);
+                            new IllegalArgumentException("method cannot be annotated by @Provide and @Inject").printStackTrace(System.err); //TODO catch with custom exception
                         }
                         if(method.isAnnotationPresent(Extend.class) && method.isAnnotationPresent(Inject.class)) {
-                            new IllegalArgumentException("method cannot be annotated by @Extend and @Inject").printStackTrace(System.err);
+                            new IllegalArgumentException("method cannot be annotated by @Extend and @Inject").printStackTrace(System.err); //TODO catch with custom exception
                         }
                         if(method.isAnnotationPresent(Provide.class)) provideMethods.add(new ProvideMethod(method));
                         if(method.isAnnotationPresent(Extend.class)) tempExtendMethods.add(method);
@@ -108,7 +115,7 @@ public class GammaCacheRegistry {
 
                             for(Parameter arg: method.getParameters()) {
                                 if(arg.isAnnotationPresent(Arg.class) && arg.isAnnotationPresent(Local.class)) {
-                                    new IllegalArgumentException("Inject parameter cannot be annotated by @Argument and @Local").printStackTrace(System.err);
+                                    new IllegalArgumentException("Inject parameter cannot be annotated by @Argument and @Local").printStackTrace(System.err); //TODO catch with custom exception
                                 }
                                 if(arg.isAnnotationPresent(Arg.class)) args.add(arg);
                                 if(arg.isAnnotationPresent(Local.class)) locals.add(arg);
@@ -185,7 +192,7 @@ public class GammaCacheRegistry {
                     System.out.println(Arrays.toString(modifyClassRef.getInjectors()));
 
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace(System.err);
+                    e.printStackTrace(System.err); //TODO catch with custom exception
                 }
             }
         }

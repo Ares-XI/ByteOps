@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InjectMethod implements FunctionalModifier {
+public final class InjectMethod implements FunctionalModifier {
     private final Method method;
     private final Class<?> targetClass;
     private final Inject annotation;
@@ -83,11 +83,9 @@ public class InjectMethod implements FunctionalModifier {
                 }
             }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
-            if (visitor.instructions == null) {
-                System.out.println("[Inject] ❌ instructions is null for " + method.getName());
-            }
+            if (visitor.instructions == null) System.out.println("[Inject] ❌ instructions is null for " + method.getName()); //TODO catch with custom exception
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace(System.err); //TODO catch with custom exception
         }
     }
 

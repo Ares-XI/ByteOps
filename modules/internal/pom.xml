@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.gammax</groupId>
-    <artifactId>mixin-internal</artifactId>
+    <artifactId>internal</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>io.gammax</groupId>
-            <artifactId>mixin-api</artifactId>
+            <artifactId>api</artifactId>
             <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>

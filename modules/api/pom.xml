@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.gammax</groupId>
-    <artifactId>mixin-api</artifactId>
+    <artifactId>api</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 

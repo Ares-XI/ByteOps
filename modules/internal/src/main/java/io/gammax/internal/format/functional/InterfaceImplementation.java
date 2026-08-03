@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
-public class InterfaceImplementation implements FunctionalModifier {
+public final class InterfaceImplementation implements FunctionalModifier {
 
     private final Class<?> interfaceClass;
 
@@ -38,7 +38,7 @@ public class InterfaceImplementation implements FunctionalModifier {
             reader = new ClassReader(classBytes);
             classNode = new ClassNode();
             reader.accept(classNode, ClassReader.EXPAND_FRAMES);
-        } catch (Exception e) {
+        } catch (Exception e) { //TODO catch with custom exception
             System.err.println("[InterfaceImplementation] Error reading class: " + e);
             e.printStackTrace(System.err);
             return null;
@@ -49,9 +49,9 @@ public class InterfaceImplementation implements FunctionalModifier {
         String interfaceName = interfaceClass.getName().replace('.', '/');
         if (!classNode.interfaces.contains(interfaceName)) {
             classNode.interfaces.add(interfaceName);
-            System.out.println("[InterfaceImplementation] ✅ Added interface: " + interfaceName);
+            System.out.println("[InterfaceImplementation] ✅ Added interface: " + interfaceName); //TODO catch with custom exception
         } else {
-            System.out.println("[InterfaceImplementation] ⚠️ Interface already present: " + interfaceName);
+            System.out.println("[InterfaceImplementation] ⚠️ Interface already present: " + interfaceName); //TODO catch with custom exception
         }
 
         System.out.println("[InterfaceImplementation] New interfaces: " + classNode.interfaces);
@@ -97,7 +97,7 @@ public class InterfaceImplementation implements FunctionalModifier {
             boolean found = existingMethods.contains(signature);
             if (!found) {
                 System.err.println("[InterfaceImplementation] ❌ Method " + signature +
-                        " from interface " + interfaceClass.getName() + " NOT found in class");
+                        " from interface " + interfaceClass.getName() + " NOT found in class"); //TODO catch with custom exception
             } else {
                 System.out.println("[InterfaceImplementation] ✅ Method " + signature + " found");
             }

@@ -2,6 +2,7 @@ package io.gammax.test.commads;
 
 import io.gammax.test.access.BoundingBoxAccess;
 import io.gammax.test.access.VectorAccess;
+import io.gammax.test.some.Test;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -97,6 +98,9 @@ public class TestMixinCommand implements CommandExecutor {
             sender.sendMessage("§7getStats() после операций: " + access.getStats());
             sender.sendMessage("§7getOperationCount(): " + access.getOperationCount());
             sender.sendMessage("§7getLastOperation(): " + access.getLastOperation());
+
+            access.setTest(Test.VAL1);
+            System.out.println("Test: " + access.getTest().name());
 
         } catch (ClassCastException e) {
             sender.sendMessage("§cИнтерфейс VectorAccess не найден, используем рефлексию");

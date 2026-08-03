@@ -6,7 +6,7 @@ import org.objectweb.asm.tree.*;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class InjectMethodVisitor extends MethodVisitor {
+public final class InjectMethodVisitor extends MethodVisitor {
     private final String targetName;
     private final String modifyName;
     private final Map<String, String> fieldMap;

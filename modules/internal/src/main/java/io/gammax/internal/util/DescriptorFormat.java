@@ -51,7 +51,6 @@ public final class DescriptorFormat {
         StringBuilder desc = new StringBuilder("(");
         for (Class<?> param : method.getParameterTypes()) desc.append(getDescriptor(param));
         desc.append(")").append(getDescriptor(method.getReturnType()));
-
         return desc.toString();
     }
 
@@ -81,17 +80,13 @@ public final class DescriptorFormat {
     public static int getParamIndex(MethodNode method, int paramIndex, int startIndex) {
         int index = startIndex;
         Type[] argTypes = Type.getArgumentTypes(method.desc);
-        for (int i = 0; i < paramIndex; i++) {
-            index += argTypes[i].getSize();
-        }
+        for (int i = 0; i < paramIndex; i++) index += argTypes[i].getSize();
         return index;
     }
 
     public static String getMethodDescriptor(Class<?>[] parameterTypes, Class<?> returnType) {
         StringBuilder desc = new StringBuilder("(");
-        for (Class<?> param : parameterTypes) {
-            desc.append(getDescriptor(param));
-        }
+        for (Class<?> param : parameterTypes) desc.append(getDescriptor(param));
         desc.append(")").append(getDescriptor(returnType));
         return desc.toString();
     }

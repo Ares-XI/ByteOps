@@ -4,7 +4,6 @@ import io.gammax.internal.instrumentation.GammaClassLoader;
 import io.gammax.internal.instrumentation.GammaCacheRegistry;
 import io.gammax.internal.instrumentation.GammaTransformer;
 
-import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,11 +35,11 @@ public class GammaStart {
                     try {
                         GammaClassLoader.instance.registerJar(path.toFile());
                     } catch (Exception e) {
-                        e.printStackTrace(System.err);
+                        e.printStackTrace(System.err); //TODO catch with custom exception
                     }
                 });
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace(System.err); //TODO catch with custom exception
             }
         }
     }
@@ -50,19 +49,9 @@ public class GammaStart {
             try {
                 GammaCacheRegistry.instance.clearCache();
                 GammaClassLoader.instance.close();
-                File cacheDir = new File("mixin/.cache"); //TODO will be change
-                if (cacheDir.exists()) deleteRecursively(cacheDir);
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace(System.err); //TODO catch with custom exception
             }
         }));
-    }
-
-    private static void deleteRecursively(File file) {
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            if (files != null) for (File f : files) deleteRecursively(f);
-        }
-        file.delete();
     }
 }

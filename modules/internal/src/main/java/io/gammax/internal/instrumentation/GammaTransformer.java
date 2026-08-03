@@ -11,11 +11,13 @@ import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 import java.util.*;
 
-public class GammaTransformer implements ClassFileTransformer {
+public final class GammaTransformer implements ClassFileTransformer {
 
     public static final GammaTransformer instance = new GammaTransformer();
 
     private static final List<String> unsupportedPaths = new ArrayList<>();
+
+    private static final Set<ClassLoader> acceptedClassLoaders = new HashSet<>();
 
     static {
         unsupportedPaths.add("java/");
@@ -41,6 +43,20 @@ public class GammaTransformer implements ClassFileTransformer {
         if(GammaCacheRegistry.instance.isTargetPath(className.replace("/", "."))) {
             for (ModifyClass mixin : GammaCacheRegistry.instance.getCache()) {
                 if (mixin.getTargetClass().getName().replace('.', '/').equals(className)) {
+                    if(!acceptedClassLoaders.contains(loader)) {
+                        for(Class<?> targetClass: GammaClassLoader.instance.getApplyToDefine()) {
+                            try {
+                                loader.loadClass(targetClass.getName());
+                            } catch (ClassNotFoundException e) {
+                                byte[] targetClassBytes = GammaClassLoader.instance.getClassBytes(targetClass.getName());
+                                if(targetClassBytes == null) throw new RuntimeException(e);
+                                ClassLoaderExtend.defineClass(loader, targetClass.getName(), targetClassBytes, 0, targetClassBytes.length, targetClass.getProtectionDomain());
+                            } finally {
+                                acceptedClassLoaders.add(loader);
+                            }
+                        }
+                    }
+
                     List<InjectMethod> injectors = Arrays.asList(mixin.getInjectors());
                     injectors.sort(Comparator.comparingInt(InjectMethod::getPriority));
 

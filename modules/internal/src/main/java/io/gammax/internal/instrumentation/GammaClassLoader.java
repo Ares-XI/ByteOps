@@ -6,28 +6,36 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class GammaClassLoader extends URLClassLoader implements AutoCloseable {
+public final class GammaClassLoader extends URLClassLoader implements AutoCloseable {
 
     public static final GammaClassLoader instance = new GammaClassLoader();
 
     private final Map<String, byte[]> byteCache = new ConcurrentHashMap<>();
     private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
     private final Map<String, JarFile> jarFiles = new HashMap<>();
+    private final Set<Class<?>> applyToDefine = new HashSet<>();
 
     public Map<String, JarFile> getJarFiles() {
         return jarFiles;
+    }
+
+    public Set<Class<?>> getApplyToDefine() {
+        return applyToDefine;
     }
 
     public void registerJar(File jarFile) throws Exception {
         JarFile jar = new JarFile(jarFile);
         jarFiles.put(jarFile.getAbsolutePath(), jar);
         super.addURL(jarFile.toURI().toURL());
+    }
+
+    public void registerClassToDefine(Class<?> targetClass) {
+        applyToDefine.add(targetClass);
     }
 
     @Override
@@ -64,7 +72,7 @@ public class GammaClassLoader extends URLClassLoader implements AutoCloseable {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace(System.err); //TODO catch with custom exception
             }
         }
 

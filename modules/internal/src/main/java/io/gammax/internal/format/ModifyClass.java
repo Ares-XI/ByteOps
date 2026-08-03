@@ -8,7 +8,7 @@ import io.gammax.internal.format.functional.ExtendField;
 import io.gammax.internal.format.functional.ExtendMethod;
 import org.jetbrains.annotations.NotNull;
 
-public class ModifyClass {
+public final class ModifyClass {
     private final Class<?> targetClass;
 
     private final ProvideField[] provideFields;

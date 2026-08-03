@@ -22,13 +22,13 @@ public final class ClassLoaderExtend {
         try {
             file = File.createTempFile(osName.substring(0, osName.lastIndexOf(".")), osExt);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); //TODO catch with custom exception
         }
 
         try (InputStream is = url.openStream(); OutputStream os = new FileOutputStream(file)) {
             is.transferTo(os);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); //TODO catch with custom exception
         }
 
         System.load(file.toPath().toString());

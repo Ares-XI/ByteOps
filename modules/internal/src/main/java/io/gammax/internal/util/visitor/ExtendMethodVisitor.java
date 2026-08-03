@@ -8,7 +8,7 @@ import org.objectweb.asm.tree.*;
 
 import java.util.*;
 
-public class ExtendMethodVisitor extends MethodVisitor {
+public final class ExtendMethodVisitor extends MethodVisitor {
 
     public InsnList instructions;
     public final List<TryCatchBlockNode> tryCatchBlocks = new ArrayList<>();

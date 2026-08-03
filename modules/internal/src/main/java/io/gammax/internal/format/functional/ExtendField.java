@@ -7,7 +7,7 @@ import org.objectweb.asm.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-public class ExtendField implements FunctionalModifier {
+public final class ExtendField implements FunctionalModifier {
     private final Field field;
     private Object constantValue;
 

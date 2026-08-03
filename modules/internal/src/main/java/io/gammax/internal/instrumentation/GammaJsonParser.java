@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class GammaJsonParser {
+public final class GammaJsonParser {
 
     public static final GammaJsonParser instance = new GammaJsonParser();
 
@@ -31,7 +31,7 @@ public class GammaJsonParser {
                             }
                         }
                     } catch (Exception e) {
-                        e.printStackTrace(System.err);
+                        e.printStackTrace(System.err); //TODO catch with custom exception
                     }
                 }
             }
@@ -48,7 +48,7 @@ public class GammaJsonParser {
                 if (config != null) result.add(config);
             }
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace(System.err); //TODO catch with custom exception
         }
     }
 

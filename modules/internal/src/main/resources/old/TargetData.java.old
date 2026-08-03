@@ -7,7 +7,7 @@
 //
 //import java.util.List;
 //
-//public class TargetData { TODO TODO
+//public class TargetData {
 //    private final String owner;
 //    private final String name;
 //    private final String desc;

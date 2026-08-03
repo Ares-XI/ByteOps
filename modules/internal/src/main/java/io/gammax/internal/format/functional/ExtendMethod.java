@@ -11,7 +11,7 @@ import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
 
-public class ExtendMethod implements FunctionalModifier {
+public final class ExtendMethod implements FunctionalModifier {
     private final Method method;
     private final Class<?> targetClass;
 
@@ -72,16 +72,14 @@ public class ExtendMethod implements FunctionalModifier {
             reader.accept(new ClassVisitor(Opcodes.ASM9) {
                 @Override
                 public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                    if (name.equals(ExtendMethod.this.method.getName()) && desc.equals(DescriptorFormat.getMethodDescriptor(method))) {
-                        return visitor;
-                    }
+                    if (name.equals(ExtendMethod.this.method.getName()) && desc.equals(DescriptorFormat.getMethodDescriptor(method))) return visitor;
                     return null;
                 }
             }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
             instructions = visitor.instructions;
 
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace(System.err); //TODO catch with custom exception
         }
     }
 

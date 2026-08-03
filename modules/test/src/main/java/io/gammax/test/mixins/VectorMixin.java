@@ -4,6 +4,7 @@ import io.gammax.api.Extend;
 import io.gammax.api.Modify;
 import io.gammax.api.Provide;
 import io.gammax.test.access.VectorAccess;
+import io.gammax.test.some.Test;
 import org.bukkit.util.Vector;
 
 @Modify(Vector.class)
@@ -25,6 +26,9 @@ public abstract class VectorMixin implements VectorAccess {
 
     @Extend
     private String lastOperation;
+
+    @Extend
+    public Test test;
 
     @Override
     @Extend
@@ -60,5 +64,17 @@ public abstract class VectorMixin implements VectorAccess {
     @Extend
     public void setLastOperation(String operation) {
         lastOperation = operation;
+    }
+
+    @Override
+    @Extend
+    public Test getTest() {
+        return test;
+    }
+
+    @Override
+    @Extend
+    public void setTest(Test test) {
+        this.test = test;
     }
 }
