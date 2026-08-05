@@ -1,6 +1,6 @@
 package io.gammax.api.util;
 
-public enum Mode {
+public enum AtMode {
     BEFORE,
 //    CANSEL,
 //    AFTER,

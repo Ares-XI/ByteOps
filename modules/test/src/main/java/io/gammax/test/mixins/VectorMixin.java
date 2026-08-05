@@ -30,50 +30,50 @@ public abstract class VectorMixin implements VectorAccess {
     @Extend
     public Test test;
 
-    @Override
     @Extend
+    @Override
     public boolean isZeroS() {
         return Math.abs(x) < EPSILON && Math.abs(y) < EPSILON && Math.abs(z) < EPSILON;
     }
 
-    @Override
     @Extend
+    @Override
     public String getStats() {
         return String.format("Vector{ops=%d, last='%s', pos=(%.2f,%.2f,%.2f)}", operationCount, lastOperation, x, y, z);
     }
 
-    @Override
     @Extend
+    @Override
     public int getOperationCount() {
         return operationCount;
     }
 
-    @Override
     @Extend
+    @Override
     public void setOperationCount(int count) {
         operationCount = count;
     }
 
-    @Override
     @Extend
+    @Override
     public String getLastOperation() {
         return lastOperation;
     }
 
-    @Override
     @Extend
+    @Override
     public void setLastOperation(String operation) {
         lastOperation = operation;
     }
 
-    @Override
     @Extend
+    @Override
     public Test getTest() {
         return test;
     }
 
-    @Override
     @Extend
+    @Override
     public void setTest(Test test) {
         this.test = test;
     }

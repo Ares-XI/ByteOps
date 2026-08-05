@@ -1,30 +1,33 @@
 package io.gammax.test.mixins;
 
+import io.gammax.api.Arg;
 import io.gammax.api.Extend;
 import io.gammax.api.Modify;
 import io.gammax.api.Provide;
+import io.gammax.api.experemental.Inject;
+import io.gammax.api.util.At;
+import io.gammax.api.util.InjectResult;
+import io.gammax.api.util.Signature;
 import org.bukkit.util.NumberConversions;
 
 @Modify(NumberConversions.class)
 public abstract class NumberConversionsMixin {
-    @Provide
-    public static native int floor(double num);
-
     @Extend
     private static int floorCallCount;
 
-//    @Inject(
-//            method = "floor",
-//            at = At.HEAD,
-//            signature = @Signature(
-//                    parameters = double.class,
-//                    result = int.class
-//            )
-//    )
-//    private static void onFloor(@Arg(0) double num) {
-//        floorCallCount++;
-//        System.out.println("[Inject HEAD] floor() called with " + num + " (total calls: " + floorCallCount + ")");
-//    }
+    @Inject(
+            method = "floor",
+            at = At.HEAD,
+            signature = @Signature(
+                    parameters = double.class,
+                    result = int.class
+            )
+    )
+    private static InjectResult<Void> onFloor(@Arg(0) double num) {
+        floorCallCount++;
+        System.out.println("[Inject HEAD] floor() called with " + num + " (total calls: " + floorCallCount + ")");
+        return InjectResult.pass();
+    }
 
     @Extend
     public static void resetCount() {

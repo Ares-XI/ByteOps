@@ -17,6 +17,10 @@ public final class InjectMethodVisitor extends MethodVisitor {
     public final List<LocalVariableNode> localVariables = new ArrayList<>();
     public final List<LineNumberNode> lineNumbers = new ArrayList<>();
     public final InsnList insnList = new InsnList();
+
+    // ⭐ МАППИНГ LABEL -> LABELNODE (Самое важное!)
+    private final Map<Label, LabelNode> labelMap = new HashMap<>();
+
     public int maxLocals;
     public int maxStack;
 
@@ -28,20 +32,19 @@ public final class InjectMethodVisitor extends MethodVisitor {
         this.methodMap = methodMap;
     }
 
-    @Override
-    public void visitInsn(int opcode) {
-        insnList.add(new InsnNode(opcode));
+    // ⭐ Хелпер для получения уникального LabelNode
+    private LabelNode getLabelNode(Label label) {
+        return labelMap.computeIfAbsent(label, LabelNode::new);
     }
 
     @Override
-    public void visitIntInsn(int opcode, int operand) {
-        insnList.add(new IntInsnNode(opcode, operand));
-    }
+    public void visitInsn(int opcode) { insnList.add(new InsnNode(opcode)); }
 
     @Override
-    public void visitVarInsn(int opcode, int var) {
-        insnList.add(new VarInsnNode(opcode, var));
-    }
+    public void visitIntInsn(int opcode, int operand) { insnList.add(new IntInsnNode(opcode, operand)); }
+
+    @Override
+    public void visitVarInsn(int opcode, int var) { insnList.add(new VarInsnNode(opcode, var)); }
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
@@ -74,12 +77,14 @@ public final class InjectMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
-        insnList.add(new JumpInsnNode(opcode, new LabelNode(label)));
+        // ⭐ Используем getLabelNode
+        insnList.add(new JumpInsnNode(opcode, getLabelNode(label)));
     }
 
     @Override
     public void visitLabel(Label label) {
-        insnList.add(new LabelNode(label));
+        // ⭐ Используем getLabelNode
+        insnList.add(getLabelNode(label));
     }
 
     @Override
@@ -95,17 +100,17 @@ public final class InjectMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
-        LabelNode dfltNode = new LabelNode(dflt);
+        LabelNode dfltNode = getLabelNode(dflt);
         LabelNode[] labelNodes = new LabelNode[labels.length];
-        for (int i = 0; i < labels.length; i++) labelNodes[i] = new LabelNode(labels[i]);
+        for (int i = 0; i < labels.length; i++) labelNodes[i] = getLabelNode(labels[i]);
         insnList.add(new TableSwitchInsnNode(min, max, dfltNode, labelNodes));
     }
 
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-        LabelNode dfltNode = new LabelNode(dflt);
+        LabelNode dfltNode = getLabelNode(dflt);
         LabelNode[] labelNodes = new LabelNode[labels.length];
-        for (int i = 0; i < labels.length; i++) labelNodes[i] = new LabelNode(labels[i]);
+        for (int i = 0; i < labels.length; i++) labelNodes[i] = getLabelNode(labels[i]);
         insnList.add(new LookupSwitchInsnNode(dfltNode, keys, labelNodes));
     }
 
@@ -119,33 +124,32 @@ public final class InjectMethodVisitor extends MethodVisitor {
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
         if (type != null && type.equals(modifyName)) type = targetName;
         tryCatchBlocks.add(new TryCatchBlockNode(
-                new LabelNode(start),
-                new LabelNode(end),
-                new LabelNode(handler),
+                getLabelNode(start),
+                getLabelNode(end),
+                getLabelNode(handler),
                 type
         ));
     }
 
     @Override
     public void visitLineNumber(int line, Label start) {
-        lineNumbers.add(new LineNumberNode(line, new LabelNode(start)));
+        lineNumbers.add(new LineNumberNode(line, getLabelNode(start)));
     }
 
     @Override
     public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
         localVariables.add(new LocalVariableNode(
                 name, desc, signature,
-                new LabelNode(start),
-                new LabelNode(end),
+                getLabelNode(start),
+                getLabelNode(end),
                 index
         ));
     }
 
     @Override
     public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {
-        List<Object> localList = new ArrayList<>(Arrays.asList(local));
-        List<Object> stackList = new ArrayList<>(Arrays.asList(stack));
-        insnList.add(new FrameNode(type, nLocal, localList.toArray(), nStack, stackList.toArray()));
+        // ⭐ Игнорируем фреймы. COMPUTE_FRAMES в ClassWriter пересчитает их сам.
+        // Сохранение старых фреймов часто ломает COMPUTE_FRAMES при инжектах.
     }
 
     @Override

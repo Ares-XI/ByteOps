@@ -18,13 +18,13 @@ public final class ExtendMethod implements FunctionalModifier {
     private InsnList instructions;
     public ExtendMethodVisitor visitor;
 
-    public ExtendMethod(Method method, Class<?> targetClass, ProvideField[] shadowFields, ProvideMethod[] shadowMethods, ExtendField[] uniqueFields, ExtendMethod[] uniqueMethods) {
+    public ExtendMethod(Method method, Class<?> targetClass, ProvideField[] provideFields, ProvideMethod[] provideMethods, ExtendField[] extendFields, ExtendMethod[] extendMethods) {
         this.method = method;
         this.targetClass = targetClass;
         this.visitor = new ExtendMethodVisitor();
 
-        buildFieldMap(shadowFields, uniqueFields);
-        buildMethodMap(shadowMethods, uniqueMethods);
+        buildFieldMap(provideFields, extendFields);
+        buildMethodMap(provideMethods, extendMethods);
     }
 
     public Method getMethod() {

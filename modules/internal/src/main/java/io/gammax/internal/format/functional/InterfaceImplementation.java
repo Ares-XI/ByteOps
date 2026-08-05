@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public final class InterfaceImplementation implements FunctionalModifier {
-
     private final Class<?> interfaceClass;
 
     public InterfaceImplementation(Class<?> interfaceClass) {

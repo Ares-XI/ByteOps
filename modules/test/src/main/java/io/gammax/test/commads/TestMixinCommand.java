@@ -149,6 +149,8 @@ public class TestMixinCommand implements CommandExecutor {
             double volume = box.getVolume();
             sender.sendMessage("§7Объём: " + volume);
 
+            sender.sendMessage(String.valueOf(box.getMinX()));
+
             sender.sendMessage("§7getDimensions() после: " + access.getDimensions());
             sender.sendMessage("§7getData(): " + access.getData());
 

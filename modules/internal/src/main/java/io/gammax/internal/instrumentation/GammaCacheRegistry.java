@@ -4,9 +4,10 @@ import io.gammax.api.*;
 import io.gammax.api.Arg;
 import io.gammax.api.experemental.Inject;
 import io.gammax.api.Local;
+import io.gammax.api.util.InjectResult;
 import io.gammax.internal.format.*;
 import io.gammax.internal.format.data.ArgumentParameter;
-import io.gammax.internal.format.data.LocalParameter;
+//import io.gammax.internal.format.data.LocalParameter; TODO will be added later
 import io.gammax.internal.format.data.ProvideField;
 import io.gammax.internal.format.data.ProvideMethod;
 import io.gammax.internal.format.functional.InjectMethod;
@@ -77,7 +78,7 @@ public final class GammaCacheRegistry {
                     List<Method> tempExtendMethods = new ArrayList<>();
                     List<Method> tempInjectMethods = new ArrayList<>();
                     Map<Method, List<Parameter>> tempArgumentParameters = new HashMap<>();
-                    Map<Method, List<Parameter>> tempLocalParameters = new HashMap<>();
+//                    Map<Method, List<Parameter>> tempLocalParameters = new HashMap<>(); TODO will be added later
 
                     for(Class<?> interfaceClass: modifyClass.getInterfaces()) {
                         try {
@@ -92,6 +93,7 @@ public final class GammaCacheRegistry {
                     for(Field field: modifyClass.getDeclaredFields()) {
                         if(field.isAnnotationPresent(Provide.class) && field.isAnnotationPresent(Extend.class)) {
                             new IllegalArgumentException("field cannot be annotated by @Provide and @Extend").printStackTrace(System.err); //TODO catch with custom exception
+                            continue;
                         }
                         if(field.isAnnotationPresent(Provide.class)) provideFields.add(new ProvideField(field));
                         if(field.isAnnotationPresent(Extend.class)) extendFields.add(new ExtendField(field));
@@ -100,29 +102,38 @@ public final class GammaCacheRegistry {
                     for(Method method: modifyClass.getDeclaredMethods()) {
                         if(method.isAnnotationPresent(Provide.class) && method.isAnnotationPresent(Extend.class)) {
                             new IllegalArgumentException("method cannot be annotated by @Provide and @Extend").printStackTrace(System.err); //TODO catch with custom exception
+                            continue;
                         }
                         if(method.isAnnotationPresent(Provide.class) && method.isAnnotationPresent(Inject.class)) {
                             new IllegalArgumentException("method cannot be annotated by @Provide and @Inject").printStackTrace(System.err); //TODO catch with custom exception
+                            continue;
                         }
                         if(method.isAnnotationPresent(Extend.class) && method.isAnnotationPresent(Inject.class)) {
                             new IllegalArgumentException("method cannot be annotated by @Extend and @Inject").printStackTrace(System.err); //TODO catch with custom exception
+                            continue;
                         }
                         if(method.isAnnotationPresent(Provide.class)) provideMethods.add(new ProvideMethod(method));
                         if(method.isAnnotationPresent(Extend.class)) tempExtendMethods.add(method);
                         if(method.isAnnotationPresent(Inject.class)) {
+                            if(!InjectResult.class.isAssignableFrom(method.getReturnType())) {
+                                new IllegalArgumentException("method must return InjectResult: " + method.getReturnType().getName() + ", " + InjectResult.class.getName()).printStackTrace(System.err); //TODO catch with custom exception
+                                continue;
+                            }
+
                             List<Parameter> args = new ArrayList<>();
-                            List<Parameter> locals = new ArrayList<>();
+//                            List<Parameter> locals = new ArrayList<>(); TODO will be added later
 
                             for(Parameter arg: method.getParameters()) {
                                 if(arg.isAnnotationPresent(Arg.class) && arg.isAnnotationPresent(Local.class)) {
                                     new IllegalArgumentException("Inject parameter cannot be annotated by @Argument and @Local").printStackTrace(System.err); //TODO catch with custom exception
+                                    break;
                                 }
                                 if(arg.isAnnotationPresent(Arg.class)) args.add(arg);
-                                if(arg.isAnnotationPresent(Local.class)) locals.add(arg);
+//                                if(arg.isAnnotationPresent(Local.class)) locals.add(arg); TODO will be added later
                             }
 
                             tempArgumentParameters.put(method, args);
-                            tempLocalParameters.put(method, locals);
+//                            tempLocalParameters.put(method, locals); TODO will be added later
                             tempInjectMethods.add(method);
                         }
                     }
@@ -143,7 +154,7 @@ public final class GammaCacheRegistry {
                         for (ExtendMethod um : extendMethods) um.updateMethodMap(extendMethods.toArray(new ExtendMethod[0]));
                         for (Method method : tempInjectMethods) {
                             List<ArgumentParameter> args = new ArrayList<>();
-                            List<LocalParameter> locals = new ArrayList<>();
+//                            List<LocalParameter> locals = new ArrayList<>(); TODO will be added later
 
                             if (tempArgumentParameters.containsKey(method)) {
                                 for (Parameter parameter : tempArgumentParameters.get(method)) {
@@ -151,11 +162,11 @@ public final class GammaCacheRegistry {
                                 }
                             }
 
-                            if (tempLocalParameters.containsKey(method)) {
-                                for (Parameter parameter : tempLocalParameters.get(method)) {
-                                    locals.add(new LocalParameter(parameter));
-                                }
-                            }
+//                            if (tempLocalParameters.containsKey(method)) { TODO will be added later
+//                                for (Parameter parameter : tempLocalParameters.get(method)) {
+//                                    locals.add(new LocalParameter(parameter));
+//                                }
+//                            }
 
                             injectMethodsList.add(new InjectMethod(
                                     method,
@@ -164,8 +175,8 @@ public final class GammaCacheRegistry {
                                     extendFields.toArray(new ExtendField[0]),
                                     provideMethods.toArray(new ProvideMethod[0]),
                                     extendMethods.toArray(new ExtendMethod[0]),
-                                    args.toArray(new ArgumentParameter[0]),
-                                    locals.toArray(new LocalParameter[0])
+                                    args.toArray(new ArgumentParameter[0])
+//                                    locals.toArray(new LocalParameter[0]) TODO will be added later
                             ));
                         }
                     }
@@ -198,5 +209,7 @@ public final class GammaCacheRegistry {
         }
     }
 
-    private GammaCacheRegistry() {}
+    private GammaCacheRegistry() {
+        GammaClassLoader.instance.registerClassToDefine(InjectResult.class);
+    }
 }

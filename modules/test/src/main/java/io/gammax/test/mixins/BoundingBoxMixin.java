@@ -1,10 +1,15 @@
 package io.gammax.test.mixins;
 
+import io.gammax.api.Arg;
 import io.gammax.api.Extend;
 import io.gammax.api.Modify;
 import io.gammax.api.Provide;
+import io.gammax.api.experemental.Inject;
+import io.gammax.api.util.InjectResult;
+import io.gammax.api.util.Signature;
 import io.gammax.test.access.BoundingBoxAccess;
 import org.bukkit.util.BoundingBox;
+import io.gammax.api.util.At;
 
 @Modify(BoundingBox.class)
 public abstract class BoundingBoxMixin implements BoundingBoxAccess {
@@ -32,8 +37,8 @@ public abstract class BoundingBoxMixin implements BoundingBoxAccess {
     @Extend
     public static final double EXPAND_FACTOR = 1.1;
 
-    @Override
     @Extend
+    @Override
     public void expandSymmetrical(double amount) {
         minX -= amount;
         minY -= amount;
@@ -47,15 +52,34 @@ public abstract class BoundingBoxMixin implements BoundingBoxAccess {
         System.out.println("data set to \"hello\"");
     }
 
-    @Override
     @Extend
+    @Override
     public String getDimensions() {
         return String.format("BoundingBox{min=(%.2f,%.2f,%.2f), max=(%.2f,%.2f,%.2f)}", minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    @Override
     @Extend
+    @Override
     public String getData() {
         return data;
+    }
+
+    @Inject(method = "<init>", at = At.HEAD, signature = @Signature(parameters = {
+            double.class,
+            double.class,
+            double.class,
+            double.class,
+            double.class,
+            double.class,
+    }))
+    private InjectResult<Void> onTest(@Arg(0) double minX) {
+        System.out.println("init: " + minX);
+        return InjectResult.pass();
+    }
+
+    @Inject(method = "getMinX", at = At.HEAD, signature = @Signature(result = double.class))
+    private InjectResult<Double> onGetMinX() {
+        System.out.println("changing result value to: 67.0");
+        return InjectResult.stop(67.0);
     }
 }
