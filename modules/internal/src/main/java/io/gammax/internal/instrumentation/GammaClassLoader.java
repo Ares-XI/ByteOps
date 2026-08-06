@@ -72,7 +72,7 @@ public final class GammaClassLoader extends URLClassLoader implements AutoClosea
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace(System.err); //TODO catch with custom exception
+                e.printStackTrace(System.err);
             }
         }
 

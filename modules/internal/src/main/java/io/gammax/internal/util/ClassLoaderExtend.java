@@ -1,5 +1,7 @@
 package io.gammax.internal.util;
 
+import io.gammax.internal.exeptions.ModifyInternalException;
+
 import java.io.*;
 import java.net.URL;
 import java.security.ProtectionDomain;
@@ -22,13 +24,13 @@ public final class ClassLoaderExtend {
         try {
             file = File.createTempFile(osName.substring(0, osName.lastIndexOf(".")), osExt);
         } catch (IOException e) {
-            throw new RuntimeException(e); //TODO catch with custom exception
+            throw new ModifyInternalException(e);
         }
 
         try (InputStream is = url.openStream(); OutputStream os = new FileOutputStream(file)) {
             is.transferTo(os);
         } catch (IOException e) {
-            throw new RuntimeException(e); //TODO catch with custom exception
+            throw new ModifyInternalException(e);
         }
 
         System.load(file.toPath().toString());

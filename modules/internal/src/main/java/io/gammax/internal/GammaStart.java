@@ -1,5 +1,6 @@
 package io.gammax.internal;
 
+import io.gammax.internal.exeptions.ModifyInternalException;
 import io.gammax.internal.instrumentation.GammaClassLoader;
 import io.gammax.internal.instrumentation.GammaCacheRegistry;
 import io.gammax.internal.instrumentation.GammaTransformer;
@@ -35,23 +36,19 @@ public class GammaStart {
                     try {
                         GammaClassLoader.instance.registerJar(path.toFile());
                     } catch (Exception e) {
-                        e.printStackTrace(System.err); //TODO catch with custom exception
+                        new ModifyInternalException(e).printStackTrace(System.err);
                     }
                 });
             } catch (Exception e) {
-                e.printStackTrace(System.err); //TODO catch with custom exception
+                new ModifyInternalException(e).printStackTrace(System.err);
             }
         }
     }
 
     private static void registerClose() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                GammaCacheRegistry.instance.clearCache();
-                GammaClassLoader.instance.close();
-            } catch (Exception e) {
-                e.printStackTrace(System.err); //TODO catch with custom exception
-            }
+            GammaCacheRegistry.instance.clearCache();
+            GammaClassLoader.instance.close();
         }));
     }
 }

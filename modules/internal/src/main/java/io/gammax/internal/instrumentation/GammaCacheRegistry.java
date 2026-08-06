@@ -5,6 +5,8 @@ import io.gammax.api.Arg;
 import io.gammax.api.experemental.Inject;
 import io.gammax.api.Local;
 import io.gammax.api.util.InjectResult;
+import io.gammax.internal.exeptions.ModifyFormatException;
+import io.gammax.internal.exeptions.ModifyInternalException;
 import io.gammax.internal.format.*;
 import io.gammax.internal.format.data.ArgumentParameter;
 //import io.gammax.internal.format.data.LocalParameter; TODO will be added later
@@ -56,17 +58,27 @@ public final class GammaCacheRegistry {
                 try {
                    GammaClassLoader.instance.registerClassToDefine(GammaClassLoader.instance.loadClass(path));
                 } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e); //TODO catch with custom exception
+                    new ModifyInternalException(e).printStackTrace(System.err);
                 }
             }
+
             for(String path: format.modify) {
                 try {
                     System.out.println(path);
                     Class<?> modifyClass = GammaClassLoader.instance.loadClass(path);
 
-                    if(modifyClass.isAnnotation() || modifyClass.isInterface() || modifyClass.isEnum()) throw new IllegalArgumentException("@Modify class must be abstract"); //TODO catch with custom exception
-                    if(!Modifier.isAbstract(modifyClass.getModifiers())) throw new IllegalArgumentException("@Modify class must be abstract"); //TODO catch with custom exception
-                    if(!modifyClass.isAnnotationPresent(Modify.class)) throw new IllegalArgumentException("class must be annotated by @Modify"); //TODO catch with custom exception
+                    if(modifyClass.isAnnotation() || modifyClass.isInterface() || modifyClass.isEnum()) {
+                        new ModifyFormatException("@Modify class must be abstract").printStackTrace(System.err);
+                        continue;
+                    }
+                    if(!Modifier.isAbstract(modifyClass.getModifiers())) {
+                        new ModifyFormatException("@Modify class must be abstract").printStackTrace(System.err);
+                        continue;
+                    }
+                    if(!modifyClass.isAnnotationPresent(Modify.class)) {
+                        new ModifyFormatException("class must be annotated by @Modify").printStackTrace(System.err);
+                        continue;
+                    }
 
                     List<ProvideField> provideFields = new ArrayList<>();
                     List<ProvideMethod> provideMethods = new ArrayList<>();
@@ -84,7 +96,8 @@ public final class GammaCacheRegistry {
                         try {
                             GammaClassLoader.instance.loadClass(interfaceClass.getName());
                         } catch (ClassNotFoundException e) {
-                            e.printStackTrace(System.err); //TODO catch with custom exception
+                            e.printStackTrace(System.err);
+                            continue;
                         }
 
                         interfaceImplementationList.add(new InterfaceImplementation(interfaceClass));
@@ -92,7 +105,7 @@ public final class GammaCacheRegistry {
 
                     for(Field field: modifyClass.getDeclaredFields()) {
                         if(field.isAnnotationPresent(Provide.class) && field.isAnnotationPresent(Extend.class)) {
-                            new IllegalArgumentException("field cannot be annotated by @Provide and @Extend").printStackTrace(System.err); //TODO catch with custom exception
+                            new ModifyFormatException("field cannot be annotated by @Provide and @Extend").printStackTrace(System.err);
                             continue;
                         }
                         if(field.isAnnotationPresent(Provide.class)) provideFields.add(new ProvideField(field));
@@ -101,36 +114,40 @@ public final class GammaCacheRegistry {
 
                     for(Method method: modifyClass.getDeclaredMethods()) {
                         if(method.isAnnotationPresent(Provide.class) && method.isAnnotationPresent(Extend.class)) {
-                            new IllegalArgumentException("method cannot be annotated by @Provide and @Extend").printStackTrace(System.err); //TODO catch with custom exception
+                            new ModifyFormatException("method cannot be annotated by @Provide and @Extend").printStackTrace(System.err);
                             continue;
                         }
                         if(method.isAnnotationPresent(Provide.class) && method.isAnnotationPresent(Inject.class)) {
-                            new IllegalArgumentException("method cannot be annotated by @Provide and @Inject").printStackTrace(System.err); //TODO catch with custom exception
+                            new ModifyFormatException("method cannot be annotated by @Provide and @Inject").printStackTrace(System.err);
                             continue;
                         }
                         if(method.isAnnotationPresent(Extend.class) && method.isAnnotationPresent(Inject.class)) {
-                            new IllegalArgumentException("method cannot be annotated by @Extend and @Inject").printStackTrace(System.err); //TODO catch with custom exception
+                            new ModifyFormatException("method cannot be annotated by @Extend and @Inject").printStackTrace(System.err);
                             continue;
                         }
                         if(method.isAnnotationPresent(Provide.class)) provideMethods.add(new ProvideMethod(method));
                         if(method.isAnnotationPresent(Extend.class)) tempExtendMethods.add(method);
                         if(method.isAnnotationPresent(Inject.class)) {
                             if(!InjectResult.class.isAssignableFrom(method.getReturnType())) {
-                                new IllegalArgumentException("method must return InjectResult: " + method.getReturnType().getName() + ", " + InjectResult.class.getName()).printStackTrace(System.err); //TODO catch with custom exception
+                                new ModifyFormatException("method must return InjectResult: " + method.getReturnType().getName() + ", " + InjectResult.class.getName()).printStackTrace(System.err);
                                 continue;
                             }
 
                             List<Parameter> args = new ArrayList<>();
 //                            List<Parameter> locals = new ArrayList<>(); TODO will be added later
+                            boolean isValid = true;
 
                             for(Parameter arg: method.getParameters()) {
                                 if(arg.isAnnotationPresent(Arg.class) && arg.isAnnotationPresent(Local.class)) {
-                                    new IllegalArgumentException("Inject parameter cannot be annotated by @Argument and @Local").printStackTrace(System.err); //TODO catch with custom exception
+                                    new ModifyFormatException("Inject parameter cannot be annotated by @Argument and @Local").printStackTrace(System.err);
+                                    isValid = false;
                                     break;
                                 }
                                 if(arg.isAnnotationPresent(Arg.class)) args.add(arg);
 //                                if(arg.isAnnotationPresent(Local.class)) locals.add(arg); TODO will be added later
                             }
+
+                            if(!isValid) continue;
 
                             tempArgumentParameters.put(method, args);
 //                            tempLocalParameters.put(method, locals); TODO will be added later
@@ -203,7 +220,7 @@ public final class GammaCacheRegistry {
                     System.out.println(Arrays.toString(modifyClassRef.getInjectors()));
 
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace(System.err); //TODO catch with custom exception
+                    e.printStackTrace(System.err);
                 }
             }
         }

@@ -1,5 +1,6 @@
 package io.gammax.internal.format.functional;
 
+import io.gammax.internal.exeptions.ModifyInternalException;
 import io.gammax.internal.format.FunctionalModifier;
 import io.gammax.internal.util.DescriptorFormat;
 import org.objectweb.asm.*;
@@ -37,9 +38,8 @@ public final class ExtendField implements FunctionalModifier {
                 case Boolean b -> constantValue = b ? 1 : 0;
                 case null, default -> {}
             }
-
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            new ModifyInternalException(e).printStackTrace(System.err);
         }
     }
 

@@ -9,7 +9,6 @@ import org.objectweb.asm.tree.*;
 import java.util.*;
 
 public final class ExtendMethodVisitor extends MethodVisitor {
-
     public InsnList instructions;
     public final List<TryCatchBlockNode> tryCatchBlocks = new ArrayList<>();
     public final List<LocalVariableNode> localVariables = new ArrayList<>();
@@ -138,11 +137,7 @@ public final class ExtendMethodVisitor extends MethodVisitor {
     }
 
     @Override
-    public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {
-        List<Object> localList = new ArrayList<>(Arrays.asList(local));
-        List<Object> stackList = new ArrayList<>(Arrays.asList(stack));
-        insnList.add(new FrameNode(type, nLocal, localList.toArray(), nStack, stackList.toArray()));
-    }
+    public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {}
 
     @Override
     public void visitMaxs(int maxStack, int maxLocals) {

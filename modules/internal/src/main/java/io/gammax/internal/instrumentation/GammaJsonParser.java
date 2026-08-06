@@ -31,7 +31,7 @@ public final class GammaJsonParser {
                             }
                         }
                     } catch (Exception e) {
-                        e.printStackTrace(System.err); //TODO catch with custom exception
+                        e.printStackTrace(System.err);
                     }
                 }
             }
@@ -48,7 +48,7 @@ public final class GammaJsonParser {
                 if (config != null) result.add(config);
             }
         } catch (Exception e) {
-            e.printStackTrace(System.err); //TODO catch with custom exception
+            e.printStackTrace(System.err);
         }
     }
 

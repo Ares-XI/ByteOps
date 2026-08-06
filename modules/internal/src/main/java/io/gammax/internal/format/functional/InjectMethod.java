@@ -95,16 +95,11 @@ public final class InjectMethod implements FunctionalModifier {
         }
     }
 
-    private MethodNode createInjectorMethodNode(String name) {
+    private MethodNode createInjectorMethodNode(String name, boolean targetStatic) {
         int access = ACC_PRIVATE;
-        if (Modifier.isStatic(method.getModifiers())) access |= ACC_STATIC;
+        if (Modifier.isStatic(method.getModifiers()) || targetStatic) access |= ACC_STATIC;
 
-        MethodNode mn = new MethodNode(
-                access,
-                name,
-                DescriptorFormat.getMethodDescriptor(method),
-                null,
-                null);
+        MethodNode mn = new MethodNode(access, name, DescriptorFormat.getMethodDescriptor(method), null, null);
 
         visitor.instructions.forEach(mn.instructions::add);
 
@@ -118,14 +113,12 @@ public final class InjectMethod implements FunctionalModifier {
     }
 
     private void injectIntoTargetMethod(MethodNode targetMethod, String injectorName) {
-        // === 1. Находим точку вставки ===
         AbstractInsnNode point = targetMethod.instructions.getFirst();
         if (point == null) {
             System.err.println("[Inject] ❌ Target method has no instructions: " + targetMethod.name);
             return;
         }
 
-        // === 2. Конструкторы: вставляем ПОСЛЕ super()/this() ===
         if (targetMethod.name.equals("<init>") && annotation.at() == At.HEAD) {
             AbstractInsnNode current = point;
             while (current != null) {
@@ -137,37 +130,23 @@ public final class InjectMethod implements FunctionalModifier {
                 }
                 current = current.getNext();
             }
-            if (point == null) {
-                point = targetMethod.instructions.getFirst();
-            }
+            if (point == null) point = targetMethod.instructions.getFirst();
         }
 
-        // === 3. Строим вызов инжектора ===
         InsnList callCode = buildCallCode(injectorName, targetMethod);
 
-        // === 4. tryCatchBlocks из инжектора ===
-        // ИСПРАВЛЕНИЕ: Убираем targetMethod.tryCatchBlocks.addAll(visitor.tryCatchBlocks);
-        // Try-catch блоки самого инжектора остаются внутри injectorMethod (в classNode.methods).
-        // В targetMethod мы добавляем только наш новый try-catch для InjectResult.
-
-        // === 5. Находим свободные слоты ===
-        // ИСПРАВЛЕНИЕ: Инжектор выполняется в отдельном фрейме стека, его локалки не пересекаются с targetMethod.
         int baseSlot = targetMethod.maxLocals;
         int throwableSlot = baseSlot + 1;
 
-        // === 6. Строим try-catch ===
         LabelNode tryStart = new LabelNode(new Label());
         LabelNode tryEnd = new LabelNode(new Label());
         LabelNode catchStart = new LabelNode(new Label());
         LabelNode continueLabel = new LabelNode(new Label());
-
         InsnList tryBlock = new InsnList();
 
-        // Вызов инжектора
         tryBlock.add(callCode);
         tryBlock.add(new VarInsnNode(ASTORE, baseSlot));
 
-        // Проверка isStop()
         tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
         tryBlock.add(new MethodInsnNode(
                 INVOKEVIRTUAL,
@@ -178,7 +157,6 @@ public final class InjectMethod implements FunctionalModifier {
         ));
         tryBlock.add(new JumpInsnNode(IFEQ, continueLabel));
 
-        // Обработка stop == true (Return logic)
         Type returnType = Type.getReturnType(targetMethod.desc);
 
         if (returnType == Type.VOID_TYPE) {
@@ -195,7 +173,6 @@ public final class InjectMethod implements FunctionalModifier {
             tryBlock.add(new TypeInsnNode(CHECKCAST, returnType.getInternalName()));
             tryBlock.add(new InsnNode(ARETURN));
         } else {
-            // Примитив: анбоксинг
             tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
             tryBlock.add(new MethodInsnNode(
                     INVOKEVIRTUAL,
@@ -218,46 +195,26 @@ public final class InjectMethod implements FunctionalModifier {
             tryBlock.add(new InsnNode(DescriptorFormat.getReturnOpcode(returnType)));
         }
 
-        // Catch-блок
         InsnList catchBlock = new InsnList();
+
         catchBlock.add(new VarInsnNode(ASTORE, throwableSlot));
         catchBlock.add(new TypeInsnNode(NEW, "java/lang/RuntimeException"));
         catchBlock.add(new InsnNode(DUP));
         catchBlock.add(new VarInsnNode(ALOAD, throwableSlot));
-        catchBlock.add(new MethodInsnNode(
-                INVOKESPECIAL,
-                "java/lang/RuntimeException",
-                "<init>",
-                "(Ljava/lang/Throwable;)V",
-                false
-        ));
+        catchBlock.add(new MethodInsnNode(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "(Ljava/lang/Throwable;)V", false));
         catchBlock.add(new InsnNode(ATHROW));
 
-        // === 7. ВСТАВЛЯЕМ КОД В TARGET METHOD ===
         targetMethod.instructions.insertBefore(point, tryStart);
         targetMethod.instructions.insertBefore(point, tryBlock);
         targetMethod.instructions.insertBefore(point, tryEnd);
-
-        // ИСПРАВЛЕНИЕ: Вставляем catch-блок ПЕРЕД continueLabel.
         targetMethod.instructions.insertBefore(point, catchStart);
         targetMethod.instructions.insertBefore(point, catchBlock);
-
-        // ⭐ ГЛАВНОЕ ИСПРАВЛЕНИЕ: continueLabel должен быть ПОСЛЕ catch-блока!
-        // Теперь, если isStop() == false, IFEQ прыгнет сюда, и выполнение корректно
-        // продолжится оригинальным кодом метода (point), минуя выброс исключения.
         targetMethod.instructions.insertBefore(point, continueLabel);
 
-        // === 8. ДОБАВЛЯЕМ try-catch В ТАБЛИЦУ ИСКЛЮЧЕНИЙ ===
-        targetMethod.tryCatchBlocks.add(new TryCatchBlockNode(
-                tryStart,
-                tryEnd,
-                catchStart,
-                "java/lang/Throwable"
-        ));
+        targetMethod.tryCatchBlocks.add(new TryCatchBlockNode(tryStart, tryEnd, catchStart, "java/lang/Throwable"));
 
-        // === 9. Пересчитываем maxLocals (Опционально, COMPUTE_MAXS сделает это сам) ===
         targetMethod.maxLocals = throwableSlot + 1;
-        targetMethod.maxStack = Math.max(targetMethod.maxStack, 4); // 4 с запасом на стековые операции обертки
+        targetMethod.maxStack = Math.max(targetMethod.maxStack, 4);
     }
 
     private InsnList buildCallCode(String injectorName, MethodNode targetMethod) {
@@ -317,41 +274,10 @@ public final class InjectMethod implements FunctionalModifier {
         throw new IllegalArgumentException("Unknown primitive type: " + type);
     }
 
-    // Находит максимальный индекс локальной переменной, используемой в методе
-    private int getMaxLocalIndex(InsnList instructions) {
-        int max = -1;
-        for (AbstractInsnNode insn : instructions) {
-            if (insn instanceof VarInsnNode varInsn) {
-                int size = getVarSize(varInsn);
-                max = Math.max(max, varInsn.var + size - 1);
-            }
-            if (insn instanceof IincInsnNode iincInsn) {
-                max = Math.max(max, iincInsn.var);
-            }
-        }
-        return max;
-    }
-
-    // Возвращает размер (1 или 2) для long/double
-    private int getVarSize(VarInsnNode varInsn) {
-        int opcode = varInsn.getOpcode();
-        if (opcode == Opcodes.LLOAD || opcode == Opcodes.LSTORE ||
-                opcode == Opcodes.DLOAD || opcode == Opcodes.DSTORE) {
-            return 2;
-        }
-        return 1;
-    }
-
-    // ===== 7. PUBLIC API =====
-
     @Override
     public byte[] modify(byte[] bytecode) {
         ClassNode classNode = new ClassNode();
         new ClassReader(bytecode).accept(classNode, ClassReader.SKIP_FRAMES);
-
-        String injectorName = "injector$" + UUID.randomUUID().toString().replace("-", "");
-        MethodNode injectorMethod = createInjectorMethodNode(injectorName);
-        classNode.methods.add(injectorMethod);
 
         Signature targetSig = annotation.signature();
         String targetDesc = DescriptorFormat.getMethodDescriptor(targetSig);
@@ -374,20 +300,24 @@ public final class InjectMethod implements FunctionalModifier {
             return bytecode;
         }
 
+        boolean targetStatic = (targetMethod.access & ACC_STATIC) != 0;
+
+        String injectorName = "injector$" + UUID.randomUUID().toString().replace("-", "");
+        MethodNode injectorMethod = createInjectorMethodNode(injectorName, targetStatic);
+        classNode.methods.add(injectorMethod);
+
         injectIntoTargetMethod(targetMethod, injectorName);
 
-        // ⭐⭐ ПЕРЕСЧИТЫВАЕМ ВСЕ ФРЕЙМЫ И МАКСИМУМЫ
         for (MethodNode method : classNode.methods) {
             Iterator<AbstractInsnNode> it = method.instructions.iterator();
             while (it.hasNext()) {
                 AbstractInsnNode insn = it.next();
                 if (insn instanceof FrameNode) {
-                    it.remove(); // <-- Это работает!
+                    it.remove();
                 }
             }
         }
 
-        // ИСПОЛЬЗУЕМ КЛАССОВЫЙ РАЙТЕР С ПЕРЕСЧЁТОМ
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         classNode.accept(writer);
         return writer.toByteArray();

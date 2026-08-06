@@ -91,11 +91,6 @@ public final class DescriptorFormat {
         return desc.toString();
     }
 
-    public static boolean isReturnPoint(AbstractInsnNode insn) {
-        int opcode = insn.getOpcode();
-        return opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN;
-    }
-
     public static int getReturnOpcode(Type type) {
         if (type == Type.VOID_TYPE) return Opcodes.RETURN;
         if (type == Type.BOOLEAN_TYPE || type == Type.BYTE_TYPE || type == Type.CHAR_TYPE || type == Type.SHORT_TYPE || type == Type.INT_TYPE) return Opcodes.IRETURN;

@@ -1,5 +1,6 @@
 package io.gammax.internal.instrumentation;
 
+import io.gammax.internal.exeptions.ModifyInternalException;
 import io.gammax.internal.format.*;
 import io.gammax.internal.format.functional.InjectMethod;
 import io.gammax.internal.format.functional.InterfaceImplementation;
@@ -12,7 +13,6 @@ import java.security.ProtectionDomain;
 import java.util.*;
 
 public final class GammaTransformer implements ClassFileTransformer {
-
     public static final GammaTransformer instance = new GammaTransformer();
 
     private static final List<String> unsupportedPaths = new ArrayList<>();
@@ -38,43 +38,54 @@ public final class GammaTransformer implements ClassFileTransformer {
             byte[] bytecode
     ) {
         if(className == null) return null;
-        for(String str: unsupportedPaths) if(className.startsWith(str)) return null;
+
+        List<InjectMethod> injectMethods = new ArrayList<>();
 
         if(GammaCacheRegistry.instance.isTargetPath(className.replace("/", "."))) {
             for (ModifyClass mixin : GammaCacheRegistry.instance.getCache()) {
                 if (mixin.getTargetClass().getName().replace('.', '/').equals(className)) {
+                    for(String str: unsupportedPaths) if(className.startsWith(str)) {
+                        new ModifyInternalException("modifying this class is unsupported").printStackTrace(System.err);
+                        return null;
+                    }
+
                     if(!acceptedClassLoaders.contains(loader)) {
                         for(Class<?> targetClass: GammaClassLoader.instance.getApplyToDefine()) {
                             try {
                                 loader.loadClass(targetClass.getName());
                             } catch (ClassNotFoundException e) {
                                 byte[] targetClassBytes = GammaClassLoader.instance.getClassBytes(targetClass.getName());
-                                if(targetClassBytes == null) throw new RuntimeException(e);
+                                if(targetClassBytes == null) {
+                                    new ModifyInternalException(e, "class bytecode not found in GammaClassLoader cache").printStackTrace(System.err);
+                                    continue;
+                                }
                                 ClassLoaderExtend.defineClass(loader, targetClass.getName(), targetClassBytes, 0, targetClassBytes.length, targetClass.getProtectionDomain());
-                            } finally {
-                                acceptedClassLoaders.add(loader);
                             }
+
+                            acceptedClassLoaders.add(loader);
                         }
                     }
 
-                    List<InjectMethod> injectors = Arrays.asList(mixin.getInjectors());
-                    injectors.sort(Comparator.comparingInt(InjectMethod::getPriority));
-
                     for (ExtendField extendField : mixin.getExtendFields()) bytecode = extendField.modify(bytecode);
                     for (ExtendMethod extendMethod : mixin.getExtendMethods()) bytecode = extendMethod.modify(bytecode);
-                    for (InjectMethod injectMethod : injectors) bytecode = injectMethod.modify(bytecode);
                     for (InterfaceImplementation implementation: mixin.getImplementations()) {
                         bytecode = implementation.modify(bytecode);
                         byte[] implementationBytecode = GammaClassLoader.instance.getClassBytes(implementation.getInterfaceClass().getName());
+                        if(implementationBytecode == null) {
+                            new ModifyInternalException("interface bytecode not found in GammaClassLoader cache").printStackTrace(System.err);
+                            continue;
+                        }
                         ClassLoaderExtend.defineClass(loader, implementation.getInterfaceClass().getName(), implementationBytecode, 0, implementationBytecode.length, protectionDomain);
                     }
-
-                    return bytecode;
+                    injectMethods.addAll(Arrays.asList(mixin.getInjectors()));
                 }
             }
         }
 
-        return null;
+        injectMethods.sort(Comparator.comparingInt(InjectMethod::getPriority));
+        for (InjectMethod injectMethod: injectMethods) bytecode = injectMethod.modify(bytecode);
+
+        return bytecode;
     }
 
     private GammaTransformer() {}

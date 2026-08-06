@@ -64,23 +64,18 @@ public final class ExtendMethod implements FunctionalModifier {
     }
 
     private void extractMethodInstructions() {
-        try {
-            byte[] mixinBytes = GammaClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
-            if (mixinBytes == null) return;
+        byte[] mixinBytes = GammaClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
+        if (mixinBytes == null) return;
 
-            ClassReader reader = new ClassReader(mixinBytes);
-            reader.accept(new ClassVisitor(Opcodes.ASM9) {
-                @Override
-                public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                    if (name.equals(ExtendMethod.this.method.getName()) && desc.equals(DescriptorFormat.getMethodDescriptor(method))) return visitor;
-                    return null;
-                }
-            }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-            instructions = visitor.instructions;
-
-        } catch (Exception e) {
-            e.printStackTrace(System.err); //TODO catch with custom exception
-        }
+        ClassReader reader = new ClassReader(mixinBytes);
+        reader.accept(new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                if (name.equals(ExtendMethod.this.method.getName()) && desc.equals(DescriptorFormat.getMethodDescriptor(method))) return visitor;
+                return null;
+            }
+        }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        instructions = visitor.instructions;
     }
 
     @Override
@@ -93,12 +88,17 @@ public final class ExtendMethod implements FunctionalModifier {
         ClassVisitor vis = new ClassVisitor(Opcodes.ASM9, writer) {
             @Override
             public void visitEnd() {
-                MethodVisitor mv = cv.visitMethod(DescriptorFormat.getMethodAccess(method), method.getName(), DescriptorFormat.getMethodDescriptor(method), null, null);
-
-                for (TryCatchBlockNode tcb : visitor.tryCatchBlocks) tcb.accept(mv);
+                MethodVisitor mv = cv.visitMethod(
+                        DescriptorFormat.getMethodAccess(method),
+                        method.getName(),
+                        DescriptorFormat.getMethodDescriptor(method),
+                        null,
+                        null
+                );
 
                 mv.visitCode();
 
+                for (TryCatchBlockNode tcb : visitor.tryCatchBlocks) tcb.accept(mv);
                 for (AbstractInsnNode insn : visitor.instructions) insn.accept(mv);
                 for (LineNumberNode line : visitor.lineNumbers) line.accept(mv);
                 for (LocalVariableNode local : visitor.localVariables) local.accept(mv);

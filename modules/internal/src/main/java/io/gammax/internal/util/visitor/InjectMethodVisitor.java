@@ -18,7 +18,6 @@ public final class InjectMethodVisitor extends MethodVisitor {
     public final List<LineNumberNode> lineNumbers = new ArrayList<>();
     public final InsnList insnList = new InsnList();
 
-    // ⭐ МАППИНГ LABEL -> LABELNODE (Самое важное!)
     private final Map<Label, LabelNode> labelMap = new HashMap<>();
 
     public int maxLocals;
@@ -32,7 +31,6 @@ public final class InjectMethodVisitor extends MethodVisitor {
         this.methodMap = methodMap;
     }
 
-    // ⭐ Хелпер для получения уникального LabelNode
     private LabelNode getLabelNode(Label label) {
         return labelMap.computeIfAbsent(label, LabelNode::new);
     }
@@ -77,13 +75,11 @@ public final class InjectMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
-        // ⭐ Используем getLabelNode
         insnList.add(new JumpInsnNode(opcode, getLabelNode(label)));
     }
 
     @Override
     public void visitLabel(Label label) {
-        // ⭐ Используем getLabelNode
         insnList.add(getLabelNode(label));
     }
 
@@ -147,10 +143,7 @@ public final class InjectMethodVisitor extends MethodVisitor {
     }
 
     @Override
-    public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {
-        // ⭐ Игнорируем фреймы. COMPUTE_FRAMES в ClassWriter пересчитает их сам.
-        // Сохранение старых фреймов часто ломает COMPUTE_FRAMES при инжектах.
-    }
+    public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {}
 
     @Override
     public void visitMaxs(int maxStack, int maxLocals) {
