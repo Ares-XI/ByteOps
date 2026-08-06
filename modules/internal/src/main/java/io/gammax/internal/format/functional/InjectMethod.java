@@ -1,11 +1,12 @@
 package io.gammax.internal.format.functional;
 
 import io.gammax.api.Arg;
-import io.gammax.api.experemental.Inject;
-import io.gammax.api.util.At;
+import io.gammax.api.Inject;
+import io.gammax.api.Local;
 import io.gammax.api.util.Signature;
+import io.gammax.internal.exeptions.ModifyInternalException;
 import io.gammax.internal.format.data.ArgumentParameter;
-//import io.gammax.internal.format.data.LocalParameter; TODO will be added later
+import io.gammax.internal.format.data.LocalParameter;
 import io.gammax.internal.format.data.ProvideField;
 import io.gammax.internal.format.data.ProvideMethod;
 import io.gammax.internal.format.FunctionalModifier;
@@ -17,10 +18,7 @@ import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -32,14 +30,14 @@ public final class InjectMethod implements FunctionalModifier {
     private final Map<String, String> fieldMap = new HashMap<>();
     private final Map<String, String> methodMap = new HashMap<>();
     private final ArgumentParameter[] argumentParams;
-//    private final LocalParameter[] localParameters; TODO will be added later
+    private final LocalParameter[] localParameters;
 
-    public InjectMethod(Method method, Class<?> targetClass, ProvideField[] provideFields, ExtendField[] extendFields, ProvideMethod[] provideMethods, ExtendMethod[] extendMethods, ArgumentParameter[] argumentParams) {
+    public InjectMethod(Method method, Class<?> targetClass, ProvideField[] provideFields, ExtendField[] extendFields, ProvideMethod[] provideMethods, ExtendMethod[] extendMethods, ArgumentParameter[] argumentParams, LocalParameter[] localParameters) {
         this.method = method;
         this.targetClass = targetClass;
         this.annotation = method.getAnnotation(Inject.class);
         this.argumentParams = argumentParams;
-//        this.localParameters = localParameters; TODO will be added later
+        this.localParameters = localParameters;
 
         buildFieldMap(provideFields, extendFields);
         buildMethodMap(provideMethods, extendMethods);
@@ -73,26 +71,22 @@ public final class InjectMethod implements FunctionalModifier {
     }
 
     private void extractMethodInstructions() {
-        try {
-            byte[] mixinBytes = GammaClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
-            if (mixinBytes == null) {
-                System.out.println("[Inject] mixinBytes = null for " + method.getName());
-                return;
-            }
-
-            String injectorDesc = DescriptorFormat.getMethodDescriptor(method);
-            new ClassReader(mixinBytes).accept(new ClassVisitor(Opcodes.ASM9) {
-                @Override
-                public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                    if (name.equals(method.getName()) && desc.equals(injectorDesc)) return visitor;
-                    return null;
-                }
-            }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-
-            if (visitor.instructions == null) System.out.println("[Inject] ❌ instructions is null for " + method.getName()); //TODO catch with custom exception
-        } catch (Exception e) {
-            e.printStackTrace(System.err); //TODO catch with custom exception
+        byte[] mixinBytes = GammaClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
+        if (mixinBytes == null) {
+            new ModifyInternalException("[Inject] mixinBytes = null for " + method.getName()).printStackTrace(System.err);
+            return;
         }
+
+        String injectorDesc = DescriptorFormat.getMethodDescriptor(method);
+        new ClassReader(mixinBytes).accept(new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                if (name.equals(method.getName()) && desc.equals(injectorDesc)) return visitor;
+                return null;
+            }
+        }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+
+        if (visitor.instructions == null) new ModifyInternalException("instructions is null for " + method.getName()).printStackTrace(System.err);
     }
 
     private MethodNode createInjectorMethodNode(String name, boolean targetStatic) {
@@ -102,10 +96,8 @@ public final class InjectMethod implements FunctionalModifier {
         MethodNode mn = new MethodNode(access, name, DescriptorFormat.getMethodDescriptor(method), null, null);
 
         visitor.instructions.forEach(mn.instructions::add);
-
         mn.tryCatchBlocks.addAll(visitor.tryCatchBlocks);
         mn.localVariables.addAll(visitor.localVariables);
-
         mn.maxLocals = visitor.maxLocals;
         mn.maxStack = visitor.maxStack;
 
@@ -113,18 +105,24 @@ public final class InjectMethod implements FunctionalModifier {
     }
 
     private void injectIntoTargetMethod(MethodNode targetMethod, String injectorName) {
+        switch (annotation.at()) {
+            case HEAD -> injectAtHead(targetMethod, injectorName);
+            case RETURN -> injectAtReturn(targetMethod, injectorName);
+            default -> new ModifyInternalException("Unsupported At: " + annotation.at()).printStackTrace(System.err);
+        }
+    }
+
+    private void injectAtHead(MethodNode targetMethod, String injectorName) {
         AbstractInsnNode point = targetMethod.instructions.getFirst();
         if (point == null) {
-            System.err.println("[Inject] ❌ Target method has no instructions: " + targetMethod.name);
+            new ModifyInternalException("Target method has no instructions: " + targetMethod.name).printStackTrace(System.err);
             return;
         }
 
-        if (targetMethod.name.equals("<init>") && annotation.at() == At.HEAD) {
+        if (targetMethod.name.equals("<init>")) {
             AbstractInsnNode current = point;
             while (current != null) {
-                if (current instanceof MethodInsnNode min &&
-                        min.name.equals("<init>") &&
-                        min.getOpcode() == INVOKESPECIAL) {
+                if (current instanceof MethodInsnNode min && min.name.equals("<init>") && min.getOpcode() == INVOKESPECIAL) {
                     point = current.getNext();
                     break;
                 }
@@ -132,6 +130,34 @@ public final class InjectMethod implements FunctionalModifier {
             }
             if (point == null) point = targetMethod.instructions.getFirst();
         }
+
+        injectBeforeInsn(targetMethod, point, injectorName);
+    }
+
+    private void injectAtReturn(MethodNode targetMethod, String injectorName) {
+        int index = annotation.index();
+
+        List<AbstractInsnNode> returnNodes = new ArrayList<>();
+        for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isReturnInsn(insn)) returnNodes.add(insn);
+
+        if (returnNodes.isEmpty()) {
+            new ModifyInternalException("no return found in " + targetMethod.name + targetMethod.desc).printStackTrace(System.err);
+            return;
+        }
+
+        List<AbstractInsnNode> targets;
+        if (index == -1) targets = returnNodes;
+        else if (index >= 0 && index < returnNodes.size()) targets = List.of(returnNodes.get(index));
+        else {
+            new ModifyInternalException("return index out of bounds: " + index + " (found " + returnNodes.size() + " returns in " + targetMethod.name + ")").printStackTrace(System.err);
+            return;
+        }
+
+        for (AbstractInsnNode returnInsn : targets) injectBeforeReturn(targetMethod, returnInsn, injectorName);
+    }
+
+    private void injectBeforeInsn(MethodNode targetMethod, AbstractInsnNode point, String injectorName) {
+        Type returnType = Type.getReturnType(targetMethod.desc);
 
         InsnList callCode = buildCallCode(injectorName, targetMethod);
 
@@ -142,67 +168,19 @@ public final class InjectMethod implements FunctionalModifier {
         LabelNode tryEnd = new LabelNode(new Label());
         LabelNode catchStart = new LabelNode(new Label());
         LabelNode continueLabel = new LabelNode(new Label());
+
         InsnList tryBlock = new InsnList();
 
         tryBlock.add(callCode);
         tryBlock.add(new VarInsnNode(ASTORE, baseSlot));
 
         tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
-        tryBlock.add(new MethodInsnNode(
-                INVOKEVIRTUAL,
-                "io/gammax/api/util/InjectResult",
-                "isStop",
-                "()Z",
-                false
-        ));
+        tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "isStop", "()Z", false));
         tryBlock.add(new JumpInsnNode(IFEQ, continueLabel));
 
-        Type returnType = Type.getReturnType(targetMethod.desc);
+        addReturnLogic(tryBlock, baseSlot, returnType);
 
-        if (returnType == Type.VOID_TYPE) {
-            tryBlock.add(new InsnNode(RETURN));
-        } else if (returnType.getSort() == Type.OBJECT || returnType.getSort() == Type.ARRAY) {
-            tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
-            tryBlock.add(new MethodInsnNode(
-                    INVOKEVIRTUAL,
-                    "io/gammax/api/util/InjectResult",
-                    "getValue",
-                    "()Ljava/lang/Object;",
-                    false
-            ));
-            tryBlock.add(new TypeInsnNode(CHECKCAST, returnType.getInternalName()));
-            tryBlock.add(new InsnNode(ARETURN));
-        } else {
-            tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
-            tryBlock.add(new MethodInsnNode(
-                    INVOKEVIRTUAL,
-                    "io/gammax/api/util/InjectResult",
-                    "getValue",
-                    "()Ljava/lang/Object;",
-                    false
-            ));
-            String wrapperType = getWrapperType(returnType);
-            tryBlock.add(new TypeInsnNode(CHECKCAST, wrapperType));
-            String unboxMethod = getUnboxMethod(returnType);
-            String unboxDesc = getUnboxDesc(returnType);
-            tryBlock.add(new MethodInsnNode(
-                    INVOKEVIRTUAL,
-                    wrapperType,
-                    unboxMethod,
-                    unboxDesc,
-                    false
-            ));
-            tryBlock.add(new InsnNode(DescriptorFormat.getReturnOpcode(returnType)));
-        }
-
-        InsnList catchBlock = new InsnList();
-
-        catchBlock.add(new VarInsnNode(ASTORE, throwableSlot));
-        catchBlock.add(new TypeInsnNode(NEW, "java/lang/RuntimeException"));
-        catchBlock.add(new InsnNode(DUP));
-        catchBlock.add(new VarInsnNode(ALOAD, throwableSlot));
-        catchBlock.add(new MethodInsnNode(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "(Ljava/lang/Throwable;)V", false));
-        catchBlock.add(new InsnNode(ATHROW));
+        InsnList catchBlock = buildCatchBlock(throwableSlot);
 
         targetMethod.instructions.insertBefore(point, tryStart);
         targetMethod.instructions.insertBefore(point, tryBlock);
@@ -213,15 +191,89 @@ public final class InjectMethod implements FunctionalModifier {
 
         targetMethod.tryCatchBlocks.add(new TryCatchBlockNode(tryStart, tryEnd, catchStart, "java/lang/Throwable"));
 
-        targetMethod.maxLocals = throwableSlot + 1;
+        targetMethod.maxLocals = Math.max(targetMethod.maxLocals, throwableSlot + 1);
         targetMethod.maxStack = Math.max(targetMethod.maxStack, 4);
+    }
+
+    private void injectBeforeReturn(MethodNode targetMethod, AbstractInsnNode returnInsn, String injectorName) {
+        Type returnType = Type.getReturnType(targetMethod.desc);
+        boolean isVoid = returnType == Type.VOID_TYPE;
+
+        InsnList callCode = buildCallCode(injectorName, targetMethod);
+
+        int baseSlot = targetMethod.maxLocals;
+        int throwableSlot = baseSlot + 1;
+        int returnValueSlot = baseSlot + 2;
+
+        LabelNode tryStart = new LabelNode(new Label());
+        LabelNode tryEnd = new LabelNode(new Label());
+        LabelNode catchStart = new LabelNode(new Label());
+        LabelNode continueLabel = new LabelNode(new Label());
+
+        InsnList tryBlock = new InsnList();
+
+        if (!isVoid) tryBlock.add(new VarInsnNode(getStoreOpcode(returnType), returnValueSlot));
+
+        tryBlock.add(callCode);
+        tryBlock.add(new VarInsnNode(ASTORE, baseSlot));
+
+        tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
+        tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "isStop", "()Z", false));
+        tryBlock.add(new JumpInsnNode(IFEQ, continueLabel));
+
+        addReturnLogic(tryBlock, baseSlot, returnType);
+
+        InsnList catchBlock = buildCatchBlock(throwableSlot);
+
+        targetMethod.instructions.insertBefore(returnInsn, tryStart);
+        targetMethod.instructions.insertBefore(returnInsn, tryBlock);
+        targetMethod.instructions.insertBefore(returnInsn, tryEnd);
+        targetMethod.instructions.insertBefore(returnInsn, catchStart);
+        targetMethod.instructions.insertBefore(returnInsn, catchBlock);
+        targetMethod.instructions.insertBefore(returnInsn, continueLabel);
+
+        if (!isVoid) targetMethod.instructions.insertBefore(returnInsn, new VarInsnNode(getLoadOpcode(returnType), returnValueSlot));
+
+        targetMethod.tryCatchBlocks.add(new TryCatchBlockNode(tryStart, tryEnd, catchStart, "java/lang/Throwable"));
+
+        targetMethod.maxLocals = Math.max(targetMethod.maxLocals, returnValueSlot + 1);
+        targetMethod.maxStack = Math.max(targetMethod.maxStack, 4);
+    }
+
+    private void addReturnLogic(InsnList tryBlock, int baseSlot, Type returnType) {
+        if (returnType == Type.VOID_TYPE) {
+            tryBlock.add(new InsnNode(RETURN));
+        } else if (returnType.getSort() == Type.OBJECT || returnType.getSort() == Type.ARRAY) {
+            tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
+            tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "getValue", "()Ljava/lang/Object;", false));
+            tryBlock.add(new TypeInsnNode(CHECKCAST, returnType.getInternalName()));
+            tryBlock.add(new InsnNode(ARETURN));
+        } else {
+            tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
+            tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "getValue", "()Ljava/lang/Object;", false));
+            String wrapperType = getWrapperType(returnType);
+            tryBlock.add(new TypeInsnNode(CHECKCAST, wrapperType));
+            tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, wrapperType, getUnboxMethod(returnType), getUnboxDesc(returnType), false));
+            tryBlock.add(new InsnNode(DescriptorFormat.getReturnOpcode(returnType)));
+        }
+    }
+
+    private InsnList buildCatchBlock(int throwableSlot) {
+        InsnList catchBlock = new InsnList();
+        catchBlock.add(new VarInsnNode(ASTORE, throwableSlot));
+        catchBlock.add(new TypeInsnNode(NEW, "java/lang/RuntimeException"));
+        catchBlock.add(new InsnNode(DUP));
+        catchBlock.add(new VarInsnNode(ALOAD, throwableSlot));
+        catchBlock.add(new MethodInsnNode(INVOKESPECIAL, "java/lang/RuntimeException", "<init>", "(Ljava/lang/Throwable;)V", false));
+        catchBlock.add(new InsnNode(ATHROW));
+        return catchBlock;
     }
 
     private InsnList buildCallCode(String injectorName, MethodNode targetMethod) {
         InsnList callCode = new InsnList();
 
         boolean targetStatic = (targetMethod.access & ACC_STATIC) != 0;
-        boolean injectorStatic = Modifier.isStatic(method.getModifiers());
+        boolean injectorStatic = Modifier.isStatic(method.getModifiers()) || targetStatic;
 
         if (!targetStatic && !injectorStatic) callCode.add(new VarInsnNode(ALOAD, 0));
 
@@ -233,9 +285,75 @@ public final class InjectMethod implements FunctionalModifier {
             callCode.add(new VarInsnNode(DescriptorFormat.getLoadOpcode(ap.parameter().getType()), paramIndex));
         }
 
-        callCode.add(new MethodInsnNode(injectorStatic ? INVOKESTATIC : INVOKEVIRTUAL, targetClass.getName().replace('.', '/'), injectorName, DescriptorFormat.getMethodDescriptor(method), false));
+        for (LocalParameter lp : localParameters) {
+            int localIndex = lp.parameter().getAnnotation(Local.class).value();
+            int rawSlot = resolveLocalSlot(targetMethod, localIndex);
+            if (rawSlot == -1) {
+                new ModifyInternalException("@Local(" + localIndex + ") not found in " + targetMethod.name).printStackTrace(System.err);
+                continue;
+            }
+            callCode.add(new VarInsnNode(DescriptorFormat.getLoadOpcode(lp.parameter().getType()), rawSlot));
+        }
+
+        callCode.add(new MethodInsnNode(
+                injectorStatic ? INVOKESTATIC : INVOKEVIRTUAL,
+                targetClass.getName().replace('.', '/'),
+                injectorName,
+                DescriptorFormat.getMethodDescriptor(method),
+                false
+        ));
 
         return callCode;
+    }
+
+    private int resolveLocalSlot(MethodNode targetMethod, int localIndex) {
+        if (targetMethod.localVariables == null || targetMethod.localVariables.isEmpty()) {
+            new ModifyInternalException("No LocalVariableTable in " + targetMethod.name + ". Compile with -g or -parameters.").printStackTrace(System.err);
+            return -1;
+        }
+
+        boolean isStatic = (targetMethod.access & ACC_STATIC) != 0;
+        Type[] argTypes = Type.getArgumentTypes(targetMethod.desc);
+
+        int argsEndSlot = isStatic ? 0 : 1;
+        for (Type argType : argTypes) argsEndSlot += argType.getSize();
+
+        List<LocalVariableNode> userLocals = new ArrayList<>();
+        for (LocalVariableNode lvn : targetMethod.localVariables) if (lvn.index >= argsEndSlot) userLocals.add(lvn);
+
+        Set<Integer> seenSlots = new HashSet<>();
+        List<LocalVariableNode> uniqueLocals = new ArrayList<>();
+        for (LocalVariableNode lvn : userLocals) if (seenSlots.add(lvn.index)) uniqueLocals.add(lvn);
+
+        uniqueLocals.sort(Comparator.comparingInt(lvn -> lvn.index));
+
+        if (localIndex < 0 || localIndex >= uniqueLocals.size()) {
+            new ModifyInternalException("@Local(" + localIndex + ") out of bounds. " + "Available locals: " + uniqueLocals.size()).printStackTrace(System.err);
+            return -1;
+        }
+
+        return uniqueLocals.get(localIndex).index;
+    }
+
+    private boolean isReturnInsn(AbstractInsnNode insn) {
+        int opcode = insn.getOpcode();
+        return opcode == RETURN || opcode == ARETURN || opcode == IRETURN || opcode == LRETURN || opcode == FRETURN || opcode == DRETURN;
+    }
+
+    private int getStoreOpcode(Type type) {
+        if (type.getSort() == Type.OBJECT || type.getSort() == Type.ARRAY) return ASTORE;
+        if (type == Type.LONG_TYPE) return LSTORE;
+        if (type == Type.DOUBLE_TYPE) return DSTORE;
+        if (type == Type.FLOAT_TYPE) return FSTORE;
+        return ISTORE;
+    }
+
+    private int getLoadOpcode(Type type) {
+        if (type.getSort() == Type.OBJECT || type.getSort() == Type.ARRAY) return ALOAD;
+        if (type == Type.LONG_TYPE) return LLOAD;
+        if (type == Type.DOUBLE_TYPE) return DLOAD;
+        if (type == Type.FLOAT_TYPE) return FLOAD;
+        return ILOAD;
     }
 
     private String getWrapperType(Type type) {
@@ -291,12 +409,12 @@ public final class InjectMethod implements FunctionalModifier {
         }
 
         if (targetMethod == null) {
-            System.err.println("[Inject] ❌ Target method not found: " + annotation.method() + targetDesc);
+            new ModifyInternalException("inject target method not found: " + annotation.method() + targetDesc).printStackTrace(System.err);
             return bytecode;
         }
 
         if ((targetMethod.access & ACC_ABSTRACT) != 0 || (targetMethod.access & ACC_NATIVE) != 0) {
-            System.err.println("[Inject] ❌ Target method " + annotation.method() + targetDesc + " is abstract/native");
+            new ModifyInternalException("inject target method is abstract/native: " + annotation.method() + targetDesc).printStackTrace(System.err);
             return bytecode;
         }
 
@@ -312,9 +430,7 @@ public final class InjectMethod implements FunctionalModifier {
             Iterator<AbstractInsnNode> it = method.instructions.iterator();
             while (it.hasNext()) {
                 AbstractInsnNode insn = it.next();
-                if (insn instanceof FrameNode) {
-                    it.remove();
-                }
+                if (insn instanceof FrameNode) it.remove();
             }
         }
 

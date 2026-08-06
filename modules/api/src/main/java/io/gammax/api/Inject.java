@@ -1,4 +1,4 @@
-package io.gammax.api.experemental;
+package io.gammax.api;
 
 import io.gammax.api.util.At;
 import io.gammax.api.util.Signature;
@@ -19,9 +19,5 @@ public @interface Inject {
 
     int priority() default 0;
 
-//    TargetReference reference() default @TargetReference; TODO will be added later
-
-//    Mode mode() default Mode.BEFORE;
-
-//    int index() default 0;
+    int index() default 0;
 }

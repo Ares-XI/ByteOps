@@ -70,6 +70,9 @@ public class TestMixinCommand implements CommandExecutor {
         sender.sendMessage("§7Создан вектор: " + vec);
         sender.sendMessage("создан ёщё один вектор: " + vec2);
 
+        System.out.println(vec2.hashCode());
+        System.out.println(vec.angle(vec2));
+
         try {
             VectorAccess access = (VectorAccess) vec;
 

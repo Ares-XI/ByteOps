@@ -12,7 +12,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public final class GammaClassLoader extends URLClassLoader implements AutoCloseable {
-
     public static final GammaClassLoader instance = new GammaClassLoader();
 
     private final Map<String, byte[]> byteCache = new ConcurrentHashMap<>();

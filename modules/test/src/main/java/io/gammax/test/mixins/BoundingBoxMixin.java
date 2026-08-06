@@ -4,7 +4,7 @@ import io.gammax.api.Arg;
 import io.gammax.api.Extend;
 import io.gammax.api.Modify;
 import io.gammax.api.Provide;
-import io.gammax.api.experemental.Inject;
+import io.gammax.api.Inject;
 import io.gammax.api.util.InjectResult;
 import io.gammax.api.util.Signature;
 import io.gammax.test.access.BoundingBoxAccess;

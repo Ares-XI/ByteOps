@@ -9,7 +9,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public final class GammaJsonParser {
-
     public static final GammaJsonParser instance = new GammaJsonParser();
 
     private final Gson GSON = new Gson();
