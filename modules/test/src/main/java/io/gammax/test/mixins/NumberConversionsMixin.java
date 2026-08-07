@@ -6,7 +6,7 @@ import io.gammax.api.Modify;
 import io.gammax.api.Inject;
 import io.gammax.api.util.At;
 import io.gammax.api.util.InjectResult;
-import io.gammax.api.util.Signature;
+import io.gammax.api.util.MethodReference;
 import org.bukkit.util.NumberConversions;
 
 @Modify(NumberConversions.class)
@@ -15,9 +15,9 @@ public abstract class NumberConversionsMixin {
     private static int floorCallCount;
 
     @Inject(
-            method = "floor",
             at = At.HEAD,
-            signature = @Signature(
+            method = @MethodReference(
+                    method = "floor",
                     parameters = double.class,
                     result = int.class
             )

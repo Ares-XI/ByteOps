@@ -1,13 +1,11 @@
 package io.gammax.internal.util;
 
-import io.gammax.api.util.Signature;
+import io.gammax.api.util.MethodReference;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 public final class DescriptorFormat {
@@ -26,7 +24,7 @@ public final class DescriptorFormat {
         return access;
     }
 
-    public static int getMethodAccess(Method method) {
+    public static int getMethodAccess(java.lang.reflect.Method method) {
         int modifiers = method.getModifiers();
         int access = 0;
 
@@ -43,11 +41,11 @@ public final class DescriptorFormat {
         return access;
     }
 
-    public static String getMethodDescriptor(Signature signature) {
+    public static String getMethodDescriptor(MethodReference signature) {
         return getMethodDescriptor(signature.parameters(), signature.result());
     }
 
-    public static String getMethodDescriptor(Method method) {
+    public static String getMethodDescriptor(java.lang.reflect.Method method) {
         StringBuilder desc = new StringBuilder("(");
         for (Class<?> param : method.getParameterTypes()) desc.append(getDescriptor(param));
         desc.append(")").append(getDescriptor(method.getReturnType()));

@@ -6,7 +6,7 @@ import io.gammax.api.Modify;
 import io.gammax.api.Provide;
 import io.gammax.api.Inject;
 import io.gammax.api.util.InjectResult;
-import io.gammax.api.util.Signature;
+import io.gammax.api.util.MethodReference;
 import io.gammax.test.access.BoundingBoxAccess;
 import org.bukkit.util.BoundingBox;
 import io.gammax.api.util.At;
@@ -64,7 +64,7 @@ public abstract class BoundingBoxMixin implements BoundingBoxAccess {
         return data;
     }
 
-    @Inject(method = "<init>", at = At.HEAD, signature = @Signature(parameters = {
+    @Inject(at = At.HEAD, method = @MethodReference(method = "<init>", parameters = {
             double.class,
             double.class,
             double.class,
@@ -77,7 +77,7 @@ public abstract class BoundingBoxMixin implements BoundingBoxAccess {
         return InjectResult.pass();
     }
 
-    @Inject(method = "getMinX", at = At.HEAD, signature = @Signature(result = double.class))
+    @Inject(at = At.HEAD, method = @MethodReference(method = "getMinX", result = double.class))
     private InjectResult<Double> onGetMinX() {
         System.out.println("changing result value to: 67.0");
         return InjectResult.stop(67.0);

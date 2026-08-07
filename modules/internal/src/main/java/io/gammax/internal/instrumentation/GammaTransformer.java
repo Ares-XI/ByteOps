@@ -1,5 +1,6 @@
 package io.gammax.internal.instrumentation;
 
+import io.gammax.api.util.MethodReference;
 import io.gammax.internal.exeptions.ModifyInternalException;
 import io.gammax.internal.format.*;
 import io.gammax.internal.format.functional.InjectMethod;
@@ -31,12 +32,7 @@ public final class GammaTransformer implements ClassFileTransformer {
     }
 
     @Override
-    public byte[] transform(
-            ClassLoader loader, String className,
-            Class<?> classBeingRedefined,
-            ProtectionDomain protectionDomain,
-            byte[] bytecode
-    ) {
+    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] bytecode) {
         if(className == null) return null;
 
         List<InjectMethod> injectMethods = new ArrayList<>();
@@ -77,13 +73,36 @@ public final class GammaTransformer implements ClassFileTransformer {
                         }
                         ClassLoaderExtend.defineClass(loader, implementation.getInterfaceClass().getName(), implementationBytecode, 0, implementationBytecode.length, protectionDomain);
                     }
-                    injectMethods.addAll(Arrays.asList(mixin.getInjectors()));
+                    Map<MethodReference, Integer> map = new HashMap<>();
+                    for (InjectMethod inject : mixin.getInjectors()) {
+                        MethodReference injectSig = inject.getAnnotation().method();
+                        boolean found = false;
+
+                        for (Map.Entry<MethodReference, Integer> entry : map.entrySet()) {
+                            MethodReference existingSig = entry.getKey();
+
+                            if (existingSig.method().equals(injectSig.method()) && existingSig.result().equals(injectSig.result()) && Arrays.equals(existingSig.parameters(), injectSig.parameters())) {
+                                int currentCount = entry.getValue();
+                                inject.preparing(bytecode, currentCount);
+                                injectMethods.add(inject);
+                                map.put(existingSig, currentCount + 1);
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found) {
+                            inject.preparing(bytecode, 0);
+                            injectMethods.add(inject);
+                            map.put(injectSig, 1);
+                        }
+                    }
                 }
             }
         }
 
         injectMethods.sort(Comparator.comparingInt(InjectMethod::getPriority));
-        for (InjectMethod injectMethod: injectMethods) bytecode = injectMethod.modify(bytecode);
+        for (InjectMethod injectMethod: injectMethods) bytecode = injectMethod.inject(bytecode);
 
         return bytecode;
     }

@@ -69,6 +69,7 @@ public class TestMixinCommand implements CommandExecutor {
         Vector vec2 = vec.clone();
         sender.sendMessage("§7Создан вектор: " + vec);
         sender.sendMessage("создан ёщё один вектор: " + vec2);
+        sender.sendMessage("Вектор: " + vec.isNormalized());
 
         System.out.println(vec2.hashCode());
         System.out.println(vec.angle(vec2));

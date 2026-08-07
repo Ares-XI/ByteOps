@@ -6,10 +6,10 @@ import java.lang.annotation.Target;
 
 @Target({})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface TargetReference {
-    Class<?> owner() default void.class;
+public @interface MethodReference {
+    String method();
 
-    String name() default "";
+    Class<?>[] parameters() default {};
 
-    Signature signature() default @Signature;
+    Class<?> result() default void.class;
 }

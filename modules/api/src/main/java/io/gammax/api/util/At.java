@@ -5,14 +5,10 @@ public enum At {
     RETURN,
 
     INVOKE,
-
     NEW,
 
     GET,
     PUT,
-
-    CAST,
-    INSTANCEOF,
 
     THROW,
 }

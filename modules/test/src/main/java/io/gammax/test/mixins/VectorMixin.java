@@ -3,7 +3,7 @@ package io.gammax.test.mixins;
 import io.gammax.api.*;
 import io.gammax.api.util.At;
 import io.gammax.api.util.InjectResult;
-import io.gammax.api.util.Signature;
+import io.gammax.api.util.MethodReference;
 import io.gammax.test.access.VectorAccess;
 import io.gammax.test.some.Test;
 import org.bukkit.util.Vector;
@@ -79,15 +79,21 @@ public abstract class VectorMixin implements VectorAccess {
         this.test = test;
     }
 
-    @Inject(method = "angle", at = At.RETURN, signature = @Signature(result = float.class, parameters = {Vector.class}))
+    @Inject(at = At.RETURN, method = @MethodReference(method = "angle", result = float.class, parameters = {Vector.class}))
     private InjectResult<Void> onAngle(@Local(0) double dot) {
         System.out.println("called inject to Return point, dot: " + dot);
         return InjectResult.pass();
     }
 
-    @Inject(method = "hashCode", at = At.RETURN, signature = @Signature(result = int.class))
+    @Inject(at = At.RETURN, method = @MethodReference(method = "hashCode", result = int.class))
     private InjectResult<Integer> onHashCode() {
         System.out.println("called inject to return 67");
         return InjectResult.stop(67);
+    }
+
+    @Inject(at = At.INVOKE, method = @MethodReference(method = "isNormalized", result = boolean.class), index = 1)
+    private InjectResult<Boolean> onIsNormalized() {
+        System.out.println("called in invoke 2-nd, with result: true");
+        return InjectResult.stop(true);
     }
 }
