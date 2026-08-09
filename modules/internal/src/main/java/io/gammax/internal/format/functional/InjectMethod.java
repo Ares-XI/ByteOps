@@ -137,22 +137,22 @@ public final class InjectMethod {
                 if (point != null) allPoints.add(point);
             }
             case RETURN -> {
-                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isReturnInsn(insn)) allPoints.add(insn);
+                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isReturnInsn(insn) && !isInjectorReturn(insn)) allPoints.add(insn);
             }
             case INVOKE -> {
-                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isInvokeOrBinaryOp(insn)) allPoints.add(insn);
+                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isInvokeOrBinaryOp(insn) && !isInjectorCall(insn)) allPoints.add(insn);
             }
             case NEW -> {
-                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isNewInsn(insn)) allPoints.add(insn);
+                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isNewInsn(insn) && !isInjectorNew(insn)) allPoints.add(insn);
             }
             case GET -> {
-                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isGetInsn(insn)) allPoints.add(insn);
+                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isGetInsn(insn) && isNotInjectorSlotAccess(insn)) allPoints.add(insn);
             }
             case PUT -> {
-                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isPutInsn(insn)) allPoints.add(insn);
+                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isPutInsn(insn) && isNotInjectorSlotAccess(insn)) allPoints.add(insn);
             }
             case THROW -> {
-                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isThrowInsn(insn)) allPoints.add(insn);
+                for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isThrowInsn(insn) && !isInjectorThrow(insn)) allPoints.add(insn);
             }
         }
 
@@ -198,7 +198,6 @@ public final class InjectMethod {
         tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "isStop", "()Z", false));
         tryBlock.add(new JumpInsnNode(IFEQ, continueLabel));
 
-        addLocalUpdateLogic(tryBlock, baseSlot, targetMethod);
         addReturnLogic(tryBlock, baseSlot, methodReturnType);
 
         InsnList catchBlock = buildCatchBlock(throwableSlot);
@@ -445,6 +444,37 @@ public final class InjectMethod {
         return uniqueLocals.get(localIndex).index;
     }
 
+    private boolean isNotInjectorSlotAccess(AbstractInsnNode insn) {
+        if (insn instanceof VarInsnNode vin) return vin.var < originalMaxLocals;
+        return true;
+    }
+
+    private boolean isInjectorReturn(AbstractInsnNode insn) {
+        AbstractInsnNode prev = insn.getPrevious();
+        while (prev != null) {
+            if (prev instanceof MethodInsnNode min) return min.owner.equals("io/gammax/api/util/InjectResult") && min.name.equals("getValue");
+            if (prev instanceof LabelNode) break;
+            prev = prev.getPrevious();
+        }
+        return false;
+    }
+
+    private boolean isInjectorNew(AbstractInsnNode insn) {
+        if (insn instanceof TypeInsnNode tin && tin.getOpcode() == NEW) return tin.desc.equals("java/lang/RuntimeException");
+        return false;
+    }
+
+    private boolean isInjectorThrow(AbstractInsnNode insn) {
+        if (insn.getOpcode() != ATHROW) return false;
+        AbstractInsnNode prev = insn.getPrevious();
+        while (prev != null) {
+            if (prev instanceof MethodInsnNode min) return min.owner.equals("java/lang/RuntimeException") && min.name.equals("<init>");
+            if (prev instanceof LabelNode) break;
+            prev = prev.getPrevious();
+        }
+        return false;
+    }
+
     private boolean isReturnInsn(AbstractInsnNode insn) {
         int opcode = insn.getOpcode();
         return opcode == RETURN || opcode == ARETURN || opcode == IRETURN || opcode == LRETURN || opcode == FRETURN || opcode == DRETURN;
@@ -542,6 +572,15 @@ public final class InjectMethod {
 
     private boolean isThrowInsn(AbstractInsnNode insn) {
         return insn.getOpcode() == ATHROW;
+    }
+
+    private boolean isInjectorCall(AbstractInsnNode insn) {
+        if (insn instanceof MethodInsnNode min) {
+            if (min.name.startsWith("injector$")) return true;
+            if (min.owner.equals("io/gammax/api/util/InjectResult")) return true;
+            return min.owner.equals("java/lang/RuntimeException");
+        }
+        return false;
     }
 
     private Type[] getStackTypesBeforeInsn(AbstractInsnNode insn) {

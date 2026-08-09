@@ -92,6 +92,12 @@ public abstract class VectorMixin implements VectorAccess {
         return InjectResult.pass();
     }
 
+    @Inject(at = At.GET, method = @MethodReference(method = "angle", result = float.class, parameters = {Vector.class}), index = 4)
+    private InjectResult<Void> onAcos(@Local(0) double dot) {
+        System.out.println("Before acos, dot=" + dot + " → setting to 0.5");
+        return InjectResult.pass().setLocals(new LocalData(0, 0.5));
+    }
+
     @Inject(at = At.RETURN, method = @MethodReference(method = "hashCode", result = int.class))
     private InjectResult<Integer> onHashCode() {
         System.out.println("called inject to return 67");
