@@ -24,13 +24,13 @@ public final class ModifyClass {
     private final InterfaceImplementation[] implementations;
 
     public ModifyClass(
-            @NotNull Class<?> targetClass,
-            @NotNull ProvideField[] provideFields,
-            @NotNull ExtendField[] extendFields,
-            @NotNull ProvideMethod[] provideMethods,
-            @NotNull ExtendMethod[] extendMethods,
-            @NotNull InjectMethod[] injectMethods,
-            @NotNull InterfaceImplementation[] interfaceImplementations
+            Class<?> targetClass,
+            ProvideField[] provideFields,
+            ExtendField[] extendFields,
+            ProvideMethod[] provideMethods,
+            ExtendMethod[] extendMethods,
+            InjectMethod[] injectMethods,
+            InterfaceImplementation[] interfaceImplementations
     ) {
         this.targetClass = targetClass;
         this.provideFields = provideFields;

@@ -1,6 +1,7 @@
 package io.gammax.internal.instrumentation;
 
 import io.gammax.api.util.MethodReference;
+import io.gammax.internal.exeptions.ModifyFormatException;
 import io.gammax.internal.exeptions.ModifyInternalException;
 import io.gammax.internal.format.*;
 import io.gammax.internal.format.functional.InjectMethod;
@@ -41,7 +42,7 @@ public final class GammaTransformer implements ClassFileTransformer {
             for (ModifyClass mixin : GammaCacheRegistry.instance.getCache()) {
                 if (mixin.getTargetClass().getName().replace('.', '/').equals(className)) {
                     for(String str: unsupportedPaths) if(className.startsWith(str)) {
-                        new ModifyInternalException("modifying this class is unsupported").printStackTrace(System.err);
+                        new ModifyFormatException("modifying this class is unsupported").printStackTrace(System.err);
                         return null;
                     }
 

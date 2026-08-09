@@ -3,6 +3,7 @@ package io.gammax.test.mixins;
 import io.gammax.api.*;
 import io.gammax.api.util.At;
 import io.gammax.api.util.InjectResult;
+import io.gammax.api.util.LocalData;
 import io.gammax.api.util.MethodReference;
 import io.gammax.test.access.VectorAccess;
 import io.gammax.test.some.Test;
@@ -77,6 +78,12 @@ public abstract class VectorMixin implements VectorAccess {
     @Override
     public void setTest(Test test) {
         this.test = test;
+    }
+
+    @Inject(at = At.GET, method = @MethodReference(method = "rotateAroundY", result = Vector.class, parameters = {double.class}), index = 11)
+    private InjectResult<Void> onXLoad(@Local(2) double x) {
+        System.out.println("x before setX: " + x + " → setting to 999.0");
+        return InjectResult.pass().setLocals(new LocalData(2, 999.0));
     }
 
     @Inject(at = At.RETURN, method = @MethodReference(method = "angle", result = float.class, parameters = {Vector.class}))

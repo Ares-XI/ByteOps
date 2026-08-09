@@ -5,6 +5,7 @@ import io.gammax.api.Arg;
 import io.gammax.api.Inject;
 import io.gammax.api.Local;
 import io.gammax.api.util.InjectResult;
+import io.gammax.api.util.LocalData;
 import io.gammax.internal.exeptions.ModifyFormatException;
 import io.gammax.internal.exeptions.ModifyInternalException;
 import io.gammax.internal.format.*;
@@ -228,5 +229,6 @@ public final class GammaCacheRegistry {
 
     private GammaCacheRegistry() {
         GammaClassLoader.instance.registerClassToDefine(InjectResult.class);
+        GammaClassLoader.instance.registerClassToDefine(LocalData.class);
     }
 }

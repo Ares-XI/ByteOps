@@ -74,6 +74,10 @@ public class TestMixinCommand implements CommandExecutor {
         System.out.println(vec2.hashCode());
         System.out.println(vec.angle(vec2));
 
+        Vector vec3 = new Vector(1, 2, 3);
+        vec3.rotateAroundY(Math.PI / 4);
+        sender.sendMessage("x after rotate: " + vec3.getX());
+
         try {
             VectorAccess access = (VectorAccess) vec;
 

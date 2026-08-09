@@ -34,7 +34,6 @@ public final class InjectMethod {
     private int originalMaxLocals;
     private static final int SLOTS_PER_INJECTOR = 32;
 
-    private ClassNode preparedClassNode;
     private MethodNode preparedTargetMethod;
     private List<AbstractInsnNode> preparedPoints;
 
@@ -193,10 +192,13 @@ public final class InjectMethod {
         tryBlock.add(callCode);
         tryBlock.add(new VarInsnNode(ASTORE, baseSlot));
 
+        addLocalUpdateLogic(tryBlock, baseSlot, targetMethod);
+
         tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
         tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "isStop", "()Z", false));
         tryBlock.add(new JumpInsnNode(IFEQ, continueLabel));
 
+        addLocalUpdateLogic(tryBlock, baseSlot, targetMethod);
         addReturnLogic(tryBlock, baseSlot, methodReturnType);
 
         InsnList catchBlock = buildCatchBlock(throwableSlot);
@@ -232,6 +234,8 @@ public final class InjectMethod {
 
         tryBlock.add(callCode);
         tryBlock.add(new VarInsnNode(ASTORE, baseSlot));
+
+        addLocalUpdateLogic(tryBlock, baseSlot, targetMethod);
 
         tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
         tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "isStop", "()Z", false));
@@ -275,6 +279,8 @@ public final class InjectMethod {
         tryBlock.add(callCode);
         tryBlock.add(new VarInsnNode(ASTORE, baseSlot));
 
+        addLocalUpdateLogic(tryBlock, baseSlot, targetMethod);
+
         tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
         tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "isStop", "()Z", false));
         tryBlock.add(new JumpInsnNode(IFEQ, continueLabel));
@@ -316,6 +322,8 @@ public final class InjectMethod {
 
         tryBlock.add(callCode);
         tryBlock.add(new VarInsnNode(ASTORE, baseSlot));
+
+        addLocalUpdateLogic(tryBlock, baseSlot, targetMethod);
 
         tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
         tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "isStop", "()Z", false));
@@ -591,10 +599,45 @@ public final class InjectMethod {
         };
     }
 
+    private void addLocalUpdateLogic(InsnList tryBlock, int baseSlot, MethodNode targetMethod) {
+        if (localParameters == null) return;
+
+        for (LocalParameter lp : localParameters) {
+            int localIndex = lp.parameter().getAnnotation(Local.class).value();
+            int rawSlot = resolveLocalSlot(targetMethod, localIndex);
+            if (rawSlot == -1) continue;
+
+            Type paramType = Type.getType(lp.parameter().getType());
+
+            tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
+            tryBlock.add(new IntInsnNode(SIPUSH, localIndex));
+            tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "hasLocalUpdate", "(I)Z", false));
+
+            LabelNode skipUpdate = new LabelNode(new Label());
+            tryBlock.add(new JumpInsnNode(IFEQ, skipUpdate));
+
+            tryBlock.add(new VarInsnNode(ALOAD, baseSlot));
+            tryBlock.add(new IntInsnNode(SIPUSH, localIndex));
+            tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, "io/gammax/api/util/InjectResult", "getLocalValue", "(I)Ljava/lang/Object;", false));
+
+            if (paramType.getSort() == Type.OBJECT || paramType.getSort() == Type.ARRAY) {
+                tryBlock.add(new TypeInsnNode(CHECKCAST, paramType.getInternalName()));
+                tryBlock.add(new VarInsnNode(ASTORE, rawSlot));
+            } else {
+                String wrapperType = getWrapperType(paramType);
+                tryBlock.add(new TypeInsnNode(CHECKCAST, wrapperType));
+                tryBlock.add(new MethodInsnNode(INVOKEVIRTUAL, wrapperType, getUnboxMethod(paramType), getUnboxDesc(paramType), false));
+                tryBlock.add(new VarInsnNode(getStoreOpcode(paramType), rawSlot));
+            }
+
+            tryBlock.add(skipUpdate);
+        }
+    }
+
     public void preparing(byte[] bytecode, int index) {
         this.injectorIndex = index;
 
-        preparedClassNode = new ClassNode();
+        ClassNode preparedClassNode = new ClassNode();
         new ClassReader(bytecode).accept(preparedClassNode, ClassReader.SKIP_FRAMES);
 
         MethodReference targetSig = annotation.method();
