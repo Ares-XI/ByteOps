@@ -1,4 +1,4 @@
-package io.gammax.test.mixins;
+package io.gammax.test.modifys;
 
 import io.byteops.modify.*;
 import io.byteops.modify.util.At;

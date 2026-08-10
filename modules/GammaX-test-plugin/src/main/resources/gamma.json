@@ -1,8 +1,8 @@
 {
   "modify": [
-    "io.gammax.test.mixins.VectorMixin",
-    "io.gammax.test.mixins.BoundingBoxMixin",
-    "io.gammax.test.mixins.NumberConversionsMixin"
+    "io.gammax.test.modifys.VectorMixin",
+    "io.gammax.test.modifys.BoundingBoxMixin",
+    "io.gammax.test.modifys.NumberConversionsMixin"
   ],
   "classpath": [
     "io.gammax.test.some.Test"
