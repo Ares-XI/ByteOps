@@ -33,7 +33,7 @@ public final class ModifyFormatTransformer implements ClassFileTransformer {
         unsupportedPaths.add("org/intellij/");
         unsupportedPaths.add("org/jetbrains/");
         unsupportedPaths.add("org/objectweb/asm/");
-        unsupportedPaths.add("io/gammax/");
+        unsupportedPaths.add("io/byteops/");
     }
 
     @Override
