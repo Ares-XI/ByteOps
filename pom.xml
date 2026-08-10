@@ -1,16 +1,16 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.gammax</groupId>
-    <artifactId>GammaX</artifactId>
+    <groupId>io.byteops</groupId>
+    <artifactId>ByteOps</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>modules/api-modify</module>
         <module>modules/api-boot</module>
-        <module>modules/internal</module>
-        <module>modules/test</module>
+        <module>modules/api-modify</module>
+        <module>modules/GammaX-test-plugin</module>
+        <module>modules/GammaX-test-agent</module>
     </modules>
 
     <properties>

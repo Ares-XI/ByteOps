@@ -1,0 +1,56 @@
+//package io.gammax.internal.util.data;
+//
+//import io.gammax.api.util.TargetReference;
+//import util.io.byteops.modify.At;
+//import util.io.byteops.internal.DescriptorFormat;
+//import org.objectweb.asm.tree.*;
+//
+//import java.util.List;
+//
+//public class TargetData {
+//    private final String owner;
+//    private final String name;
+//    private final String desc;
+//    private final boolean any;
+//    private final int varIndex;
+//    private final boolean searchByName;
+//
+//    public TargetData(TargetReference target, At at) {
+//        this.any = target.owner() == void.class;
+//        this.owner = !any ? target.owner().getName().replace('.', '/') : null;
+//        this.name = target.name();
+//        this.desc = buildDescriptor(target, at);
+//
+//        if (at == At.LOAD || at == At.STORE) {
+//            int parsedIndex = parseVarIndex(target.name());
+//            if (parsedIndex != -1) {
+//                this.varIndex = parsedIndex;
+//                this.searchByName = false;
+//            } else {
+//                this.varIndex = -1;
+//                this.searchByName = !target.name().isEmpty();
+//            }
+//        } else {
+//            this.varIndex = -1;
+//            this.searchByName = false;
+//        }
+//    }
+//
+//    private String buildDescriptor(TargetReference target, At at) {
+//        return switch (at) {
+//            case INVOKE, INVOKE_ASSIGN, INVOKE_STRING, INVOKE_DYNAMIC ->
+//                    DescriptorFormat.getMethodDescriptor(target.signature());
+//            case FIELD ->
+//                    DescriptorFormat.getDescriptor(target.signature().result());
+//            case NEW, CHECK_CAST, INSTANCEOF ->
+//                    target.owner() != void.class ? target.owner().getName().replace('.', '/') : null;
+//            case LOAD, STORE ->
+//                    target.signature().result() != void.class ? DescriptorFormat.getDescriptor(target.signature().result()) : null;
+//            default -> null;
+//        };
+//    }
+//
+//    public boolean requiresTarget() {
+//        return !any;
+//    }
+//}
