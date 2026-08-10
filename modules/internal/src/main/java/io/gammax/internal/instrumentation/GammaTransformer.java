@@ -1,8 +1,8 @@
 package io.gammax.internal.instrumentation;
 
 import io.gammax.api.util.MethodReference;
-import io.gammax.internal.exeptions.ModifyFormatException;
-import io.gammax.internal.exeptions.ModifyInternalException;
+import io.gammax.internal.exceptions.ModifyFormatException;
+import io.gammax.internal.exceptions.ModifyInternalException;
 import io.gammax.internal.format.*;
 import io.gammax.internal.format.functional.InjectMethod;
 import io.gammax.internal.format.functional.InterfaceImplementation;

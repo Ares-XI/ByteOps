@@ -1,6 +1,6 @@
 package io.gammax.internal.format.functional;
 
-import io.gammax.internal.exeptions.ModifyInternalException;
+import io.gammax.internal.exceptions.ModifyInternalException;
 import io.gammax.internal.format.FunctionalModifier;
 import io.gammax.internal.util.DescriptorFormat;
 import org.objectweb.asm.*;

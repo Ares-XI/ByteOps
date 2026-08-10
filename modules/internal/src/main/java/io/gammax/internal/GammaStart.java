@@ -1,6 +1,6 @@
 package io.gammax.internal;
 
-import io.gammax.internal.exeptions.ModifyInternalException;
+import io.gammax.internal.exceptions.ModifyInternalException;
 import io.gammax.internal.instrumentation.GammaClassLoader;
 import io.gammax.internal.instrumentation.GammaCacheRegistry;
 import io.gammax.internal.instrumentation.GammaTransformer;

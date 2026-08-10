@@ -4,7 +4,7 @@ import io.gammax.api.Arg;
 import io.gammax.api.Inject;
 import io.gammax.api.Local;
 import io.gammax.api.util.MethodReference;
-import io.gammax.internal.exeptions.ModifyInternalException;
+import io.gammax.internal.exceptions.ModifyInternalException;
 import io.gammax.internal.format.data.ArgumentParameter;
 import io.gammax.internal.format.data.LocalParameter;
 import io.gammax.internal.format.data.ProvideField;

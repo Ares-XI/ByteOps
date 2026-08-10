@@ -1,4 +1,4 @@
-package io.gammax.internal.exeptions;
+package io.gammax.internal.exceptions;
 
 public class ModifyInternalException extends RuntimeException {
     public ModifyInternalException(String message) {

@@ -1,6 +1,6 @@
 package io.gammax.internal.util;
 
-import io.gammax.internal.exeptions.ModifyInternalException;
+import io.gammax.internal.exceptions.ModifyInternalException;
 
 import java.io.*;
 import java.net.URL;
