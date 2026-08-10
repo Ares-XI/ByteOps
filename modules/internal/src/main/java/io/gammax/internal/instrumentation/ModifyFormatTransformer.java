@@ -14,8 +14,8 @@ import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 import java.util.*;
 
-public final class GammaTransformer implements ClassFileTransformer {
-    public static final GammaTransformer instance = new GammaTransformer();
+public final class ModifyFormatTransformer implements ClassFileTransformer {
+    public static final ModifyFormatTransformer instance = new ModifyFormatTransformer();
 
     private static final List<String> unsupportedPaths = new ArrayList<>();
 
@@ -38,8 +38,8 @@ public final class GammaTransformer implements ClassFileTransformer {
 
         List<InjectMethod> injectMethods = new ArrayList<>();
 
-        if(GammaCacheRegistry.instance.isTargetPath(className.replace("/", "."))) {
-            for (ModifyClass mixin : GammaCacheRegistry.instance.getCache()) {
+        if(DataCacheRegistry.instance.isTargetPath(className.replace("/", "."))) {
+            for (ModifyClass mixin : DataCacheRegistry.instance.getCache()) {
                 if (mixin.getTargetClass().getName().replace('.', '/').equals(className)) {
                     for(String str: unsupportedPaths) if(className.startsWith(str)) {
                         new ModifyFormatException("modifying this class is unsupported").printStackTrace(System.err);
@@ -47,11 +47,11 @@ public final class GammaTransformer implements ClassFileTransformer {
                     }
 
                     if(!acceptedClassLoaders.contains(loader)) {
-                        for(Class<?> targetClass: GammaClassLoader.instance.getApplyToDefine()) {
+                        for(Class<?> targetClass: JarClassLoader.instance.getApplyToDefine()) {
                             try {
                                 loader.loadClass(targetClass.getName());
                             } catch (ClassNotFoundException e) {
-                                byte[] targetClassBytes = GammaClassLoader.instance.getClassBytes(targetClass.getName());
+                                byte[] targetClassBytes = JarClassLoader.instance.getClassBytes(targetClass.getName());
                                 if(targetClassBytes == null) {
                                     new ModifyInternalException(e, "class bytecode not found in GammaClassLoader cache").printStackTrace(System.err);
                                     continue;
@@ -67,7 +67,7 @@ public final class GammaTransformer implements ClassFileTransformer {
                     for (ExtendMethod extendMethod : mixin.getExtendMethods()) bytecode = extendMethod.modify(bytecode);
                     for (InterfaceImplementation implementation: mixin.getImplementations()) {
                         bytecode = implementation.modify(bytecode);
-                        byte[] implementationBytecode = GammaClassLoader.instance.getClassBytes(implementation.getInterfaceClass().getName());
+                        byte[] implementationBytecode = JarClassLoader.instance.getClassBytes(implementation.getInterfaceClass().getName());
                         if(implementationBytecode == null) {
                             new ModifyInternalException("interface bytecode not found in GammaClassLoader cache").printStackTrace(System.err);
                             continue;
@@ -108,5 +108,5 @@ public final class GammaTransformer implements ClassFileTransformer {
         return bytecode;
     }
 
-    private GammaTransformer() {}
+    private ModifyFormatTransformer() {}
 }

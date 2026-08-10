@@ -1,9 +1,9 @@
 package io.gammax.internal;
 
 import io.gammax.internal.exceptions.ModifyInternalException;
-import io.gammax.internal.instrumentation.GammaClassLoader;
-import io.gammax.internal.instrumentation.GammaCacheRegistry;
-import io.gammax.internal.instrumentation.GammaTransformer;
+import io.gammax.internal.instrumentation.JarClassLoader;
+import io.gammax.internal.instrumentation.DataCacheRegistry;
+import io.gammax.internal.instrumentation.ModifyFormatTransformer;
 
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Files;
@@ -23,8 +23,8 @@ public class GammaStart {
         registerNatives();
         registerClose();
 
-        GammaCacheRegistry.instance.loadCache();
-        inst.addTransformer(GammaTransformer.instance);
+        DataCacheRegistry.instance.loadCache();
+        inst.addTransformer(ModifyFormatTransformer.instance);
     }
 
     private static void registerLibraries() {
@@ -34,7 +34,7 @@ public class GammaStart {
             try(Stream<Path> stream = Files.walk(Paths.get(extraDir)).filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".jar"))) {
                 stream.forEach(path -> {
                     try {
-                        GammaClassLoader.instance.registerJar(path.toFile());
+                        JarClassLoader.instance.registerJar(path.toFile());
                     } catch (Exception e) {
                         new ModifyInternalException(e).printStackTrace(System.err);
                     }
@@ -47,8 +47,8 @@ public class GammaStart {
 
     private static void registerClose() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            GammaCacheRegistry.instance.clearCache();
-            GammaClassLoader.instance.close();
+            DataCacheRegistry.instance.clearCache();
+            JarClassLoader.instance.close();
         }));
     }
 }

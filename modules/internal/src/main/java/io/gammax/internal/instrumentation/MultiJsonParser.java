@@ -1,20 +1,20 @@
 package io.gammax.internal.instrumentation;
 
 import com.google.gson.Gson;
-import io.gammax.internal.util.data.GammaConfigFormat;
+import io.gammax.internal.util.data.ModifyConfigFormat;
 
 import java.io.*;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public final class GammaJsonParser {
-    public static final GammaJsonParser instance = new GammaJsonParser();
+public final class MultiJsonParser {
+    public static final MultiJsonParser instance = new MultiJsonParser();
 
     private final Gson GSON = new Gson();
 
-    public List<GammaConfigFormat> loadAllModifyConfigs() {
-        List<GammaConfigFormat> result = new ArrayList<>();
+    public List<ModifyConfigFormat> loadAllModifyConfigs() {
+        List<ModifyConfigFormat> result = new ArrayList<>();
 
         File pluginsDir = new File("plugins");
 
@@ -25,7 +25,7 @@ public final class GammaJsonParser {
                     try {
                         try (JarFile jar = new JarFile(jarFile)) {
                             if (jar.getJarEntry("gamma.json") != null) {
-                                GammaClassLoader.instance.registerJar(jarFile);
+                                JarClassLoader.instance.registerJar(jarFile);
                                 parseConfigFromJar(jar, result);
                             }
                         }
@@ -39,11 +39,11 @@ public final class GammaJsonParser {
         return result;
     }
 
-    private void parseConfigFromJar(JarFile jar, List<GammaConfigFormat> result) {
+    private void parseConfigFromJar(JarFile jar, List<ModifyConfigFormat> result) {
         try {
             JarEntry entry = jar.getJarEntry("gamma.json");
             try (InputStream is = jar.getInputStream(entry); Reader reader = new InputStreamReader(is)) {
-                GammaConfigFormat config = GSON.fromJson(reader, GammaConfigFormat.class);
+                ModifyConfigFormat config = GSON.fromJson(reader, ModifyConfigFormat.class);
                 if (config != null) result.add(config);
             }
         } catch (Exception e) {
@@ -51,5 +51,5 @@ public final class GammaJsonParser {
         }
     }
 
-    private GammaJsonParser() {}
+    private MultiJsonParser() {}
 }

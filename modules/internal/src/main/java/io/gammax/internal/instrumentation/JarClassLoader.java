@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public final class GammaClassLoader extends URLClassLoader implements AutoCloseable {
-    public static final GammaClassLoader instance = new GammaClassLoader();
+public final class JarClassLoader extends URLClassLoader implements AutoCloseable {
+    public static final JarClassLoader instance = new JarClassLoader();
 
     private final Map<String, byte[]> byteCache = new ConcurrentHashMap<>();
     private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
@@ -92,7 +92,7 @@ public final class GammaClassLoader extends URLClassLoader implements AutoClosea
         jarFiles.clear();
     }
 
-    private GammaClassLoader() {
+    private JarClassLoader() {
         super(new URL[0]);
     }
 }

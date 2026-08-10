@@ -9,7 +9,7 @@ import io.gammax.internal.format.data.ArgumentParameter;
 import io.gammax.internal.format.data.LocalParameter;
 import io.gammax.internal.format.data.ProvideField;
 import io.gammax.internal.format.data.ProvideMethod;
-import io.gammax.internal.instrumentation.GammaClassLoader;
+import io.gammax.internal.instrumentation.JarClassLoader;
 import io.gammax.internal.util.DescriptorFormat;
 import io.gammax.internal.util.visitor.InjectMethodVisitor;
 import org.objectweb.asm.*;
@@ -85,7 +85,7 @@ public final class InjectMethod {
     }
 
     private void extractMethodInstructions() {
-        byte[] mixinBytes = GammaClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
+        byte[] mixinBytes = JarClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
         if (mixinBytes == null) {
             new ModifyInternalException("[Inject] mixinBytes = null for " + method.getName()).printStackTrace(System.err);
             return;

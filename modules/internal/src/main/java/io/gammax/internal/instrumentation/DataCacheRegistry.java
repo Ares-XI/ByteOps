@@ -17,7 +17,7 @@ import io.gammax.internal.format.functional.InjectMethod;
 import io.gammax.internal.format.functional.InterfaceImplementation;
 import io.gammax.internal.format.functional.ExtendField;
 import io.gammax.internal.format.functional.ExtendMethod;
-import io.gammax.internal.util.data.GammaConfigFormat;
+import io.gammax.internal.util.data.ModifyConfigFormat;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -25,8 +25,8 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
-public final class GammaCacheRegistry {
-    public static final GammaCacheRegistry instance = new GammaCacheRegistry();
+public final class DataCacheRegistry {
+    public static final DataCacheRegistry instance = new DataCacheRegistry();
 
     private final Set<ModifyClass> modifyClasses = new HashSet<>();
 
@@ -39,12 +39,12 @@ public final class GammaCacheRegistry {
     }
 
     public boolean isTargetPath(String className) {
-        for(ModifyClass modifyClass: GammaCacheRegistry.instance.getCache()) if(modifyClass.getTargetClass().getName().equals(className)) return true;
+        for(ModifyClass modifyClass: DataCacheRegistry.instance.getCache()) if(modifyClass.getTargetClass().getName().equals(className)) return true;
         return false;
     }
 
     public void loadCache() {
-        List<GammaConfigFormat> parsed = GammaJsonParser.instance.loadAllModifyConfigs();
+        List<ModifyConfigFormat> parsed = MultiJsonParser.instance.loadAllModifyConfigs();
 
         System.out.println("Find " + parsed.size() + " gamma.json files");
 
@@ -54,10 +54,10 @@ public final class GammaCacheRegistry {
             return;
         }
 
-        for(GammaConfigFormat format: parsed) {
+        for(ModifyConfigFormat format: parsed) {
             for (String path: format.classpath) {
                 try {
-                   GammaClassLoader.instance.registerClassToDefine(GammaClassLoader.instance.loadClass(path));
+                   JarClassLoader.instance.registerClassToDefine(JarClassLoader.instance.loadClass(path));
                 } catch (ClassNotFoundException e) {
                     new ModifyInternalException(e).printStackTrace(System.err);
                 }
@@ -66,7 +66,7 @@ public final class GammaCacheRegistry {
             for(String path: format.modify) {
                 try {
                     System.out.println(path);
-                    Class<?> modifyClass = GammaClassLoader.instance.loadClass(path);
+                    Class<?> modifyClass = JarClassLoader.instance.loadClass(path);
 
                     if(modifyClass.isAnnotation() || modifyClass.isInterface() || modifyClass.isEnum()) {
                         new ModifyFormatException("@Modify class must be abstract").printStackTrace(System.err);
@@ -95,7 +95,7 @@ public final class GammaCacheRegistry {
 
                     for(Class<?> interfaceClass: modifyClass.getInterfaces()) {
                         try {
-                            GammaClassLoader.instance.loadClass(interfaceClass.getName());
+                            JarClassLoader.instance.loadClass(interfaceClass.getName());
                         } catch (ClassNotFoundException e) {
                             e.printStackTrace(System.err);
                             continue;
@@ -199,7 +199,7 @@ public final class GammaCacheRegistry {
                         }
                     }
 
-                    GammaClassLoader.instance.loadClass(modifyClass.getAnnotation(Modify.class).value().getName());
+                    JarClassLoader.instance.loadClass(modifyClass.getAnnotation(Modify.class).value().getName());
                     Class<?> targetClass = modifyClass.getAnnotation(Modify.class).value();
 
                     ModifyClass modifyClassRef = new ModifyClass(
@@ -227,8 +227,8 @@ public final class GammaCacheRegistry {
         }
     }
 
-    private GammaCacheRegistry() {
-        GammaClassLoader.instance.registerClassToDefine(InjectResult.class);
-        GammaClassLoader.instance.registerClassToDefine(LocalData.class);
+    private DataCacheRegistry() {
+        JarClassLoader.instance.registerClassToDefine(InjectResult.class);
+        JarClassLoader.instance.registerClassToDefine(LocalData.class);
     }
 }

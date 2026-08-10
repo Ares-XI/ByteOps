@@ -3,7 +3,7 @@ package io.gammax.internal.format.functional;
 import io.gammax.internal.format.FunctionalModifier;
 import io.gammax.internal.format.data.ProvideField;
 import io.gammax.internal.format.data.ProvideMethod;
-import io.gammax.internal.instrumentation.GammaClassLoader;
+import io.gammax.internal.instrumentation.JarClassLoader;
 import io.gammax.internal.util.DescriptorFormat;
 import io.gammax.internal.util.visitor.ExtendMethodVisitor;
 import org.objectweb.asm.*;
@@ -64,7 +64,7 @@ public final class ExtendMethod implements FunctionalModifier {
     }
 
     private void extractMethodInstructions() {
-        byte[] mixinBytes = GammaClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
+        byte[] mixinBytes = JarClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
         if (mixinBytes == null) return;
 
         ClassReader reader = new ClassReader(mixinBytes);
