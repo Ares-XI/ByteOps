@@ -33,9 +33,6 @@ public class GammaStart {
             e.printStackTrace(System.err);
         }
 
-        System.out.println(libs.size());
-        System.out.println(classpath.size());
-
         BootManager.init(instrumentation, libs.toArray(new File[0]), classpath.toArray(new File[0]), new BootNode.Name("GammaX"), new BootNode.Version("1.0-alpha"), new BootNode.ConfigName("gamma"));
     }
 }
