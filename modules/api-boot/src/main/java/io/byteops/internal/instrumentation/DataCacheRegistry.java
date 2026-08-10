@@ -204,6 +204,7 @@ public final class DataCacheRegistry {
                     Class<?> targetClass = modifyClass.getAnnotation(Modify.class).value();
 
                     ModifyClass modifyClassRef = new ModifyClass(
+                            modifyClass,
                             targetClass,
                             provideFields.toArray(new ProvideField[0]),
                             extendFields.toArray(new ExtendField[0]),

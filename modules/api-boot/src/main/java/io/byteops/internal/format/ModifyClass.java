@@ -8,6 +8,7 @@ import io.byteops.internal.format.functional.ExtendField;
 import io.byteops.internal.format.functional.ExtendMethod;
 
 public final class ModifyClass {
+    private final Class<?> modifyClass;
     private final Class<?> targetClass;
     private final ProvideField[] provideFields;
     private final ExtendField[] extendFields;
@@ -17,6 +18,7 @@ public final class ModifyClass {
     private final InterfaceImplementation[] implementations;
 
     public ModifyClass(
+            Class<?> modifyClass,
             Class<?> targetClass,
             ProvideField[] provideFields,
             ExtendField[] extendFields,
@@ -25,6 +27,7 @@ public final class ModifyClass {
             InjectMethod[] injectMethods,
             InterfaceImplementation[] interfaceImplementations
     ) {
+        this.modifyClass = modifyClass;
         this.targetClass = targetClass;
         this.provideFields = provideFields;
         this.extendFields = extendFields;
@@ -32,6 +35,10 @@ public final class ModifyClass {
         this.extendMethods = extendMethods;
         this.injectMethods = injectMethods;
         this.implementations = interfaceImplementations;
+    }
+
+    public Class<?> getModifyClass() {
+        return modifyClass;
     }
 
     public Class<?> getTargetClass() {

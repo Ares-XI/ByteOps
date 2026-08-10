@@ -3,8 +3,5 @@
     "io.gammax.test.modifys.VectorMixin",
     "io.gammax.test.modifys.BoundingBoxMixin",
     "io.gammax.test.modifys.NumberConversionsMixin"
-  ],
-  "classpath": [
-    "io.gammax.test.some.Test"
   ]
 }
