@@ -22,14 +22,15 @@ public final class ClassCodeAnalyze {
             "io/byteops/modify/util/MethodReference"
     );
 
-    public static String[] getClassPathsRecursive(byte[] bytecode, ClassLoader loader) {
+    public static String[] getClassPathsRecursive(byte[] bytecode, ClassLoader loader, String currentTargetClass) {
         Set<String> visited = new HashSet<>();
         Set<String> result = new LinkedHashSet<>();
-        collectRecursive(bytecode, loader, visited, result);
+        collectRecursive(bytecode, loader, visited, result, currentTargetClass);
         return result.toArray(new String[0]);
     }
 
-    private static void collectRecursive(byte[] bytecode, ClassLoader loader, Set<String> visited, Set<String> result) {
+    private static void collectRecursive(byte[] bytecode, ClassLoader loader, Set<String> visited, Set<String> result, String currentTargetClass) {
+        String currentTargetBinaryName = currentTargetClass.replace('/', '.');
         String[] directPaths = getClassPaths(bytecode);
 
         for (String path : directPaths) {
@@ -39,15 +40,18 @@ public final class ClassCodeAnalyze {
 
             String binaryName = path.replace('/', '.');
 
+            if (binaryName.equals(currentTargetBinaryName)) continue;
+
             try {
                 loader.loadClass(binaryName);
-            } catch (ClassNotFoundException | LinkageError e) {
-                byte[] depBytes = JarClassLoader.instance.getClassBytes(binaryName);
-                if (depBytes == null) continue;
+                continue;
+            } catch (ClassNotFoundException | LinkageError ignored) {}
 
-                result.add(path);
-                collectRecursive(depBytes, loader, visited, result);
-            }
+            byte[] depBytes = JarClassLoader.instance.getClassBytes(binaryName);
+            if (depBytes == null) continue;
+
+            result.add(path);
+            collectRecursive(depBytes, loader, visited, result, currentTargetClass);
         }
     }
 

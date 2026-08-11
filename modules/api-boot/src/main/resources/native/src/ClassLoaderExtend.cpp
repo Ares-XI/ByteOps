@@ -21,7 +21,6 @@ extern "C" {
         const char* name = env->GetStringUTFChars(className, nullptr);
         if (name == nullptr) return;
 
-        // Получаем байт-код
         jsize bytecodeLength = env->GetArrayLength(bytecode);
         jbyte* bytes = env->GetByteArrayElements(bytecode, nullptr);
         if (bytes == nullptr) {
@@ -29,7 +28,6 @@ extern "C" {
             return;
         }
 
-        // Получаем метод defineClass из ClassLoader
         jclass clLoaderClass = env->GetObjectClass(classLoader);
         jmethodID defineClassMethod = env->GetMethodID(
             clLoaderClass,
@@ -43,7 +41,6 @@ extern "C" {
             return;
         }
 
-        // Вызываем defineClass
         jclass definedClass = (jclass)env->CallObjectMethod(
             classLoader,
             defineClassMethod,
@@ -54,12 +51,18 @@ extern "C" {
             protectionDomain
         );
 
-        // Освобождаем ресурсы
         env->ReleaseStringUTFChars(className, name);
         env->ReleaseByteArrayElements(bytecode, bytes, JNI_ABORT);
 
-        // Проверяем ошибки
-        if (env->ExceptionOccurred()) {
+        jthrowable exception = env->ExceptionOccurred();
+        if (exception != nullptr) {
+            jclass linkageErrorClass = env->FindClass("java/lang/LinkageError");
+            if (linkageErrorClass != nullptr && env->IsInstanceOf(exception, linkageErrorClass)) {
+                env->ExceptionClear();
+                env->DeleteLocalRef(linkageErrorClass);
+                return;
+            }
+
             env->ExceptionDescribe();
         }
     }

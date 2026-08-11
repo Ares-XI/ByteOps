@@ -1,6 +1,7 @@
 package io.gammax.test.access;
 
 import io.gammax.test.some.Test;
+import org.bukkit.util.Vector;
 
 public interface VectorAccess {
     boolean isZeroS();
@@ -11,4 +12,5 @@ public interface VectorAccess {
     void setTest(Test test);
     void setOperationCount(int count);
     void setLastOperation(String operation);
+    Vector plusThis();
 }

@@ -86,6 +86,8 @@ public class TestMixinCommand implements CommandExecutor {
             sender.sendMessage("§7getLastOperation(): " + access.getLastOperation());
             sender.sendMessage("§7isZeroS(): " + access.isZeroS());
 
+            sender.sendMessage("§7plusThis(): " + access.plusThis().toString());
+
             sender.sendMessage("§7setOperationCount(10)");
             access.setOperationCount(10);
             sender.sendMessage("§7setLastOperation(\"someOperation\")");

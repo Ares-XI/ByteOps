@@ -20,6 +20,9 @@ public abstract class VectorMixin implements VectorAccess {
     @Provide
     protected double z;
 
+    @Provide
+    public Vector add(Vector vec) { return null; }
+
     @Extend
     private int operationCount;
 
@@ -36,6 +39,12 @@ public abstract class VectorMixin implements VectorAccess {
     @Override
     public boolean isZeroS() {
         return Math.abs(x) < EPSILON && Math.abs(y) < EPSILON && Math.abs(z) < EPSILON;
+    }
+
+    @Extend
+    @Override
+    public Vector plusThis() {
+        return add((Vector) ((Object) this));
     }
 
     @Extend
