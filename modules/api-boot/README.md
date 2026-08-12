@@ -22,6 +22,7 @@ Maven:
     <version>1.0.0</version>
 </dependency>
 ```
+
 Gradle(groovy):
 ```groovy
 implementation 'io.byteops:api-boot:1.0.0'
