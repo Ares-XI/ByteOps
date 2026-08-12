@@ -1,7 +1,7 @@
 package io.byteops.boot;
 
-public abstract sealed class BootNode permits BootNode.Name, BootNode.Version, BootNode.ConfigName, BootNode.BlockedClass {
-    public static final class Name extends BootNode {
+public abstract sealed class BootFlag permits BootFlag.Name, BootFlag.Version, BootFlag.ConfigName, BootFlag.BlockedClass {
+    public static final class Name extends BootFlag {
         final String name;
 
         public Name(String name) {
@@ -9,7 +9,7 @@ public abstract sealed class BootNode permits BootNode.Name, BootNode.Version, B
         }
     }
 
-    public static final class Version extends BootNode {
+    public static final class Version extends BootFlag {
         final String version;
 
         public Version(String version) {
@@ -17,7 +17,7 @@ public abstract sealed class BootNode permits BootNode.Name, BootNode.Version, B
         }
     }
 
-    public static final class ConfigName extends BootNode {
+    public static final class ConfigName extends BootFlag {
         final String configName;
 
         public ConfigName(String configName) {
@@ -25,7 +25,7 @@ public abstract sealed class BootNode permits BootNode.Name, BootNode.Version, B
         }
     }
 
-    public static final class BlockedClass extends BootNode {
+    public static final class BlockedClass extends BootFlag {
         final Class<?> blockedClass;
 
         public BlockedClass(Class<?> blockedClass) {

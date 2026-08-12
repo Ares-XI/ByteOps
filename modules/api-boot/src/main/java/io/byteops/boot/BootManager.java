@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class BootManager {
-    public static void init(Instrumentation inst, File[] libs, File[] classpath, BootNode... args) {
+    public static void init(Instrumentation inst, File[] libs, File[] classpath, BootFlag... args) {
         if(inst == null) throw new NullPointerException("Instrumentation must be not null");
 
         List<File> jarLibs = new ArrayList<>();
@@ -24,11 +24,11 @@ public final class BootManager {
         String configName = "byte-ops";
         List<Class<?>> blockedClasses = new ArrayList<>();
 
-        for(BootNode arg: args) {
-            if(arg instanceof BootNode.Name bootNode) name = bootNode.name;
-            else if(arg instanceof BootNode.Version bootNode) version = bootNode.version;
-            else if(arg instanceof BootNode.ConfigName bootNode) configName = bootNode.configName;
-            else if(arg instanceof BootNode.BlockedClass bootNode) blockedClasses.add(bootNode.blockedClass);
+        for(BootFlag arg: args) {
+            if(arg instanceof BootFlag.Name bootNode) name = bootNode.name;
+            else if(arg instanceof BootFlag.Version bootNode) version = bootNode.version;
+            else if(arg instanceof BootFlag.ConfigName bootNode) configName = bootNode.configName;
+            else if(arg instanceof BootFlag.BlockedClass bootNode) blockedClasses.add(bootNode.blockedClass);
             else System.out.println("[WARN]: Unknown node");
         }
 
