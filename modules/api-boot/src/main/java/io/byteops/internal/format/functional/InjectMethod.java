@@ -77,10 +77,21 @@ public final class InjectMethod {
 
     private void injectAtPoint(MethodNode targetMethod, AbstractInsnNode point, String injectorName, int baseSlot) {
         switch (annotation.at()) {
-            case HEAD -> injectBeforeInsn(targetMethod, point, injectorName, baseSlot);
-            case RETURN -> injectBeforeReturn(targetMethod, point, injectorName, baseSlot);
-            case INVOKE, NEW, GET, PUT -> injectBeforeInvoke(targetMethod, point, injectorName, baseSlot);
-            case THROW -> injectBeforeThrow(targetMethod, point, injectorName, baseSlot);
+            case HEAD:
+                injectBeforeInsn(targetMethod, point, injectorName, baseSlot);
+                break;
+            case RETURN:
+                injectBeforeReturn(targetMethod, point, injectorName, baseSlot);
+                break;
+            case INVOKE:
+            case NEW:
+            case GET:
+            case PUT:
+                injectBeforeInvoke(targetMethod, point, injectorName, baseSlot);
+                break;
+            case THROW:
+                injectBeforeThrow(targetMethod, point, injectorName, baseSlot);
+                break;
         }
     }
 
@@ -122,12 +133,12 @@ public final class InjectMethod {
         List<AbstractInsnNode> allPoints = new ArrayList<>();
 
         switch (annotation.at()) {
-            case HEAD -> {
+            case HEAD: {
                 AbstractInsnNode point = targetMethod.instructions.getFirst();
                 if (targetMethod.name.equals("<init>")) {
                     AbstractInsnNode current = point;
                     while (current != null) {
-                        if (current instanceof MethodInsnNode min && min.name.equals("<init>") && min.getOpcode() == INVOKESPECIAL) {
+                        if (current instanceof MethodInsnNode && ((MethodInsnNode) current).name.equals("<init>") && current.getOpcode() == INVOKESPECIAL) {
                             point = current.getNext();
                             break;
                         }
@@ -135,33 +146,40 @@ public final class InjectMethod {
                     }
                 }
                 if (point != null) allPoints.add(point);
+                break;
             }
-            case RETURN -> {
+            case RETURN: {
                 for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isReturnInsn(insn) && !isInjectorReturn(insn)) allPoints.add(insn);
+                break;
             }
-            case INVOKE -> {
+            case INVOKE: {
                 for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isInvokeOrBinaryOp(insn) && !isInjectorCall(insn)) allPoints.add(insn);
+                break;
             }
-            case NEW -> {
+            case NEW: {
                 for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isNewInsn(insn) && !isInjectorNew(insn)) allPoints.add(insn);
+                break;
             }
-            case GET -> {
+            case GET: {
                 for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isGetInsn(insn) && isNotInjectorSlotAccess(insn)) allPoints.add(insn);
+                break;
             }
-            case PUT -> {
+            case PUT: {
                 for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isPutInsn(insn) && isNotInjectorSlotAccess(insn)) allPoints.add(insn);
+                break;
             }
-            case THROW -> {
+            case THROW: {
                 for (AbstractInsnNode insn = targetMethod.instructions.getFirst(); insn != null; insn = insn.getNext()) if (isThrowInsn(insn) && !isInjectorThrow(insn)) allPoints.add(insn);
+                break;
             }
         }
 
         int index = annotation.index();
         if (index == -1) return allPoints;
-        else if (index >= 0 && index < allPoints.size()) return List.of(allPoints.get(index));
+        else if (index >= 0 && index < allPoints.size()) return Collections.singletonList(allPoints.get(index));
         else {
             new ModifyInternalException("Index out of bounds: " + index + " (found " + allPoints.size() + ")").printStackTrace(System.err);
-            return List.of();
+            return Collections.emptyList();
         }
     }
 
@@ -445,14 +463,14 @@ public final class InjectMethod {
     }
 
     private boolean isNotInjectorSlotAccess(AbstractInsnNode insn) {
-        if (insn instanceof VarInsnNode vin) return vin.var < originalMaxLocals;
+        if (insn instanceof VarInsnNode) return ((VarInsnNode) insn).var < originalMaxLocals;
         return true;
     }
 
     private boolean isInjectorReturn(AbstractInsnNode insn) {
         AbstractInsnNode prev = insn.getPrevious();
         while (prev != null) {
-            if (prev instanceof MethodInsnNode min) return min.owner.equals("io/byteops/modify/util/InjectResult") && min.name.equals("getValue");
+            if (prev instanceof MethodInsnNode) return ((MethodInsnNode) prev).owner.equals("io/byteops/modify/util/InjectResult") && ((MethodInsnNode) prev).name.equals("getValue");
             if (prev instanceof LabelNode) break;
             prev = prev.getPrevious();
         }
@@ -460,7 +478,7 @@ public final class InjectMethod {
     }
 
     private boolean isInjectorNew(AbstractInsnNode insn) {
-        if (insn instanceof TypeInsnNode tin && tin.getOpcode() == NEW) return tin.desc.equals("java/lang/RuntimeException");
+        if (insn instanceof TypeInsnNode && insn.getOpcode() == NEW) return ((TypeInsnNode) insn).desc.equals("java/lang/RuntimeException");
         return false;
     }
 
@@ -468,7 +486,7 @@ public final class InjectMethod {
         if (insn.getOpcode() != ATHROW) return false;
         AbstractInsnNode prev = insn.getPrevious();
         while (prev != null) {
-            if (prev instanceof MethodInsnNode min) return min.owner.equals("java/lang/RuntimeException") && min.name.equals("<init>");
+            if (prev instanceof MethodInsnNode) return ((MethodInsnNode) prev).owner.equals("java/lang/RuntimeException") && ((MethodInsnNode) prev).name.equals("<init>");
             if (prev instanceof LabelNode) break;
             prev = prev.getPrevious();
         }
@@ -575,19 +593,19 @@ public final class InjectMethod {
     }
 
     private boolean isInjectorCall(AbstractInsnNode insn) {
-        if (insn instanceof MethodInsnNode min) {
-            if (min.name.startsWith("injector$")) return true;
-            if (min.owner.equals("io/byteops/modify/util/InjectResult")) return true;
-            return min.owner.equals("java/lang/RuntimeException");
+        if (insn instanceof MethodInsnNode) {
+            if (((MethodInsnNode) insn).name.startsWith("injector$")) return true;
+            if (((MethodInsnNode) insn).owner.equals("io/byteops/modify/util/InjectResult")) return true;
+            return ((MethodInsnNode) insn).owner.equals("java/lang/RuntimeException");
         }
         return false;
     }
 
     private Type[] getStackTypesBeforeInsn(AbstractInsnNode insn) {
-        if (insn instanceof MethodInsnNode min) return Type.getArgumentTypes(min.desc);
-        if (insn instanceof InvokeDynamicInsnNode idin) return Type.getArgumentTypes(idin.desc);
-        if (insn instanceof MultiANewArrayInsnNode manain) {
-            Type[] types = new Type[manain.dims];
+        if (insn instanceof MethodInsnNode) return Type.getArgumentTypes(((MethodInsnNode) insn).desc);
+        if (insn instanceof InvokeDynamicInsnNode) return Type.getArgumentTypes(((InvokeDynamicInsnNode) insn).desc);
+        if (insn instanceof MultiANewArrayInsnNode) {
+            Type[] types = new Type[((MultiANewArrayInsnNode) insn).dims];
             Arrays.fill(types, Type.INT_TYPE);
             return types;
         }
@@ -598,8 +616,8 @@ public final class InjectMethod {
         if (opcode == NEWARRAY || opcode == ANEWARRAY) return new Type[]{Type.INT_TYPE};
         if (opcode == CHECKCAST || opcode == INSTANCEOF) return new Type[]{Type.getType("Ljava/lang/Object;")};
         if (opcode == GETFIELD) {
-            if (insn instanceof FieldInsnNode fin) {
-                String ownerType = "L" + fin.owner + ";";
+            if (insn instanceof FieldInsnNode) {
+                String ownerType = "L" + ((FieldInsnNode) insn).owner + ";";
                 return new Type[]{Type.getType(ownerType)};
             }
             return new Type[]{Type.getType("Ljava/lang/Object;")};
@@ -607,15 +625,15 @@ public final class InjectMethod {
         if (opcode == GETSTATIC) return new Type[0];
         if (opcode == ILOAD || opcode == LLOAD || opcode == FLOAD || opcode == DLOAD || opcode == ALOAD) return new Type[0];
         if (opcode == PUTFIELD) {
-            if (insn instanceof FieldInsnNode fin) {
-                String ownerType = "L" + fin.owner + ";";
-                Type valueType = Type.getType(fin.desc);
+            if (insn instanceof FieldInsnNode) {
+                String ownerType = "L" + ((FieldInsnNode) insn).owner + ";";
+                Type valueType = Type.getType(((FieldInsnNode) insn).desc);
                 return new Type[]{Type.getType(ownerType), valueType};
             }
             return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE};
         }
         if (opcode == PUTSTATIC) {
-            if (insn instanceof FieldInsnNode fin) return new Type[]{Type.getType(fin.desc)};
+            if (insn instanceof FieldInsnNode) return new Type[]{Type.getType(((FieldInsnNode) insn).desc)};
             return new Type[]{Type.INT_TYPE};
         }
         if (opcode == ISTORE) return new Type[]{Type.INT_TYPE};
@@ -628,14 +646,47 @@ public final class InjectMethod {
     }
 
     private Type[] getBinaryOpOperandTypes(int opcode) {
-        return switch (opcode) {
-            case IADD, ISUB, IMUL, IDIV, IREM, IAND, IOR, IXOR, ISHL, ISHR, IUSHR -> new Type[]{Type.INT_TYPE, Type.INT_TYPE};
-            case LADD, LSUB, LMUL, LDIV, LREM, LAND, LOR, LXOR -> new Type[]{Type.LONG_TYPE, Type.LONG_TYPE};
-            case FADD, FSUB, FMUL, FDIV, FREM -> new Type[]{Type.FLOAT_TYPE, Type.FLOAT_TYPE};
-            case DADD, DSUB, DMUL, DDIV, DREM -> new Type[]{Type.DOUBLE_TYPE, Type.DOUBLE_TYPE};
-            case LSHL, LSHR, LUSHR -> new Type[]{Type.LONG_TYPE, Type.INT_TYPE};
-            default -> new Type[0];
-        };
+        switch (opcode) {
+            case IADD:
+            case ISUB:
+            case IMUL:
+            case IDIV:
+            case IREM:
+            case IAND:
+            case IOR:
+            case IXOR:
+            case ISHL:
+            case ISHR:
+            case IUSHR:
+                return new Type[]{Type.INT_TYPE, Type.INT_TYPE};
+            case LADD:
+            case LSUB:
+            case LMUL:
+            case LDIV:
+            case LREM:
+            case LAND:
+            case LOR:
+            case LXOR:
+                return new Type[]{Type.LONG_TYPE, Type.LONG_TYPE};
+            case FADD:
+            case FSUB:
+            case FMUL:
+            case FDIV:
+            case FREM:
+                return new Type[]{Type.FLOAT_TYPE, Type.FLOAT_TYPE};
+            case DADD:
+            case DSUB:
+            case DMUL:
+            case DDIV:
+            case DREM:
+                return new Type[]{Type.DOUBLE_TYPE, Type.DOUBLE_TYPE};
+            case LSHL:
+            case LSHR:
+            case LUSHR:
+                return new Type[]{Type.LONG_TYPE, Type.INT_TYPE};
+            default:
+                return new Type[0];
+        }
     }
 
     private void addLocalUpdateLogic(InsnList tryBlock, int baseSlot, MethodNode targetMethod) {

@@ -21,7 +21,7 @@ public final class InterfaceImplementation implements FunctionalModifier {
             return classBytes;
         }
 
-        ClassReader reader = new ClassReader(classBytes);;
+        ClassReader reader = new ClassReader(classBytes);
         ClassNode classNode = new ClassNode();
 
         reader.accept(classNode, ClassReader.EXPAND_FRAMES);
@@ -46,10 +46,6 @@ public final class InterfaceImplementation implements FunctionalModifier {
 
     public InterfaceImplementation(Class<?> interfaceClass) {
         this.interfaceClass = interfaceClass;
-    }
-
-    public Class<?> getInterfaceClass() {
-        return interfaceClass;
     }
 
     private void validateMethods(ClassNode classNode) {

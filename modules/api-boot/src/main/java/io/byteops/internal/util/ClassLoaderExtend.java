@@ -4,6 +4,7 @@ import io.byteops.internal.exceptions.ModifyInternalException;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
 import java.security.ProtectionDomain;
 
 public final class ClassLoaderExtend {
@@ -27,8 +28,10 @@ public final class ClassLoaderExtend {
             throw new ModifyInternalException(e);
         }
 
-        try (InputStream is = url.openStream(); OutputStream os = new FileOutputStream(file)) {
-            is.transferTo(os);
+        try (InputStream is = url.openStream(); OutputStream os = Files.newOutputStream(file.toPath())) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) os.write(buffer, 0, bytesRead);
         } catch (IOException e) {
             throw new ModifyInternalException(e);
         }

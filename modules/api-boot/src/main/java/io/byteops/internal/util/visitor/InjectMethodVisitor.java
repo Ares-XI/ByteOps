@@ -85,7 +85,7 @@ public final class InjectMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitLdcInsn(Object value) {
-        if (value instanceof Type t && t.getInternalName().equals(modifyName)) value = Type.getObjectType(targetName);
+        if (value instanceof Type && ((Type) value).getInternalName().equals(modifyName)) value = Type.getObjectType(targetName);
         insnList.add(new LdcInsnNode(value));
     }
 

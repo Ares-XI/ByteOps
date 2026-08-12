@@ -3,21 +3,14 @@ package io.byteops.internal.util;
 import io.byteops.internal.instrumentation.JarClassLoader;
 import org.objectweb.asm.*;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public final class ClassCodeAnalyze {
     private static final Set<String> IGNORED_CLASSES = Set.of(
-            "io/byteops/modify/Arg",
-            "io/byteops/modify/Extend",
-            "io/byteops/modify/Local",
-            "io/byteops/modify/Inject",
-            "io/byteops/modify/Modify",
-            "io/byteops/modify/Provide",
-            "io/byteops/modify/util/At",
-            "io/byteops/modify/util/InjectResult",
+            "io/byteops/modify/Arg", "io/byteops/modify/Extend",
+            "io/byteops/modify/Local", "io/byteops/modify/Inject",
+            "io/byteops/modify/Modify", "io/byteops/modify/Provide",
+            "io/byteops/modify/util/At", "io/byteops/modify/util/InjectResult",
             "io/byteops/modify/util/LocalData",
             "io/byteops/modify/util/MethodReference"
     );

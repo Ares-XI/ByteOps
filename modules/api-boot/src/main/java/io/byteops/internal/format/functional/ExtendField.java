@@ -26,18 +26,15 @@ public final class ExtendField implements FunctionalModifier {
             field.setAccessible(true);
             Object value = field.get(null);
 
-            switch (value) {
-                case String ignored -> constantValue = value;
-                case Integer ignored -> constantValue = value;
-                case Long ignored -> constantValue = value;
-                case Float ignored -> constantValue = value;
-                case Double ignored -> constantValue = value;
-                case Byte b -> constantValue = b.intValue();
-                case Short i -> constantValue = i.intValue();
-                case Character ignored -> constantValue = value;
-                case Boolean b -> constantValue = b ? 1 : 0;
-                case null, default -> {}
-            }
+            if (value instanceof String) constantValue = value;
+            else if (value instanceof Integer) constantValue = value;
+            else if (value instanceof Long) constantValue = value;
+            else if (value instanceof Float) constantValue = value;
+            else if (value instanceof Double) constantValue = value;
+            else if (value instanceof Byte) constantValue = ((Byte) value).intValue();
+            else if (value instanceof Short) constantValue = ((Short) value).intValue();
+            else if (value instanceof Character) constantValue = value;
+            else if (value instanceof Boolean) constantValue = ((Boolean) value) ? 1 : 0;
         } catch (Exception e) {
             new ModifyInternalException(e).printStackTrace(System.err);
         }

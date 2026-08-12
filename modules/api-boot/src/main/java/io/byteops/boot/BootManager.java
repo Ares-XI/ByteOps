@@ -25,10 +25,10 @@ public final class BootManager {
         List<Class<?>> blockedClasses = new ArrayList<>();
 
         for(BootFlag arg: args) {
-            if(arg instanceof BootFlag.Name bootNode) name = bootNode.name;
-            else if(arg instanceof BootFlag.Version bootNode) version = bootNode.version;
-            else if(arg instanceof BootFlag.ConfigName bootNode) configName = bootNode.configName;
-            else if(arg instanceof BootFlag.BlockedClass bootNode) blockedClasses.add(bootNode.blockedClass);
+            if(arg instanceof BootFlag.Name) name = ((BootFlag.Name) arg).name;
+            else if(arg instanceof BootFlag.Version) version = ((BootFlag.Version) arg).version;
+            else if(arg instanceof BootFlag.ConfigName) configName = ((BootFlag.ConfigName) arg).configName;
+            else if(arg instanceof BootFlag.BlockedClass) blockedClasses.add(((BootFlag.BlockedClass) arg).blockedClass);
             else System.out.println("[WARN]: Unknown node");
         }
 

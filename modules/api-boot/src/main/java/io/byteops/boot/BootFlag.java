@@ -1,6 +1,6 @@
 package io.byteops.boot;
 
-public abstract sealed class BootFlag permits BootFlag.Name, BootFlag.Version, BootFlag.ConfigName, BootFlag.BlockedClass {
+public abstract class BootFlag {
     public static final class Name extends BootFlag {
         final String name;
 
@@ -32,4 +32,6 @@ public abstract sealed class BootFlag permits BootFlag.Name, BootFlag.Version, B
             this.blockedClass = blockedClass;
         }
     }
+
+    private BootFlag() {}
 }

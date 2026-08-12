@@ -2,7 +2,7 @@
 
 > **Warning:** Do not launch ByteOps in Java Agents attached via the Java Attach API.
 > ByteOps will not work stably because `api-modify` adds fields and methods into the target class,
-> which is not supported by agents attached via Attach API (retransforming classes does not support adding fields and methods).
+> which is not supported by agents attached via Attach API (retransforming/redefining classes does not support adding fields and methods).
 > In the next release, I plan to add a Proxy Mode which will work with the Java Attach API.
 
 **api-boot** — core module for bootstrapping the ByteOps system inside Java Agents.
@@ -10,8 +10,6 @@
 This module provides:
 - `BootManager` — main entry point for initialization
 - `BootFlag` — configuration nodes for customizing behavior
-- Class transformation engine (based on `java.lang.instrument.Instrumentation`)
-- Dynamic loading of modifications from external JARs
 
 ---
 
@@ -51,12 +49,12 @@ io.byteops.boot.BootManager.init(Instrumentation inst, File[] libs, File[] class
 
 ### Flags to start:
 
-| Flag                                       | Description | Cardinality | Default Value |
-|--------------------------------------------|-------------|-------------|---------------|
-| `BootFlag.Name(String name)`               | Sets the agent name | Once (last wins) | `"ByteOps"` |
-| `BootFlag.Version(String version)`         | Sets the agent version | Once (last wins) | `"1.0-alpha-build-0"` |
-| `BootFlag.ConfigName(String name)`         | JSON config filename in mod JARs | Once (last wins) | `"byte-ops"` |
-| `BootFlag.BlockedClass(Class<?> classRef)` | Blocks class from modification | Multiple | See default list below |
+| Flag                                       | Description                                 | Cardinality                                              | Default Value |
+|--------------------------------------------|---------------------------------------------|----------------------------------------------------------|---------------|
+| `BootFlag.Name(String name)`               | Sets the agent name                         | Once (last wins)                                         | `"ByteOps"` |
+| `BootFlag.Version(String version)`         | Sets the agent version                      | Once (last wins)                                         | `"1.0-alpha-build-0"` |
+| `BootFlag.ConfigName(String name)`         | JSON config filename in JARs with modifings | Once (last wins)                                         | `"byte-ops"` |
+| `BootFlag.BlockedClass(Class<?> classRef)` | Blocks class from modification              | Multiple(one boot flag(blockedClass) -> +1 blockedClass) | See default list below |
 
 ### Packages which blocked by default:
 ```
@@ -149,11 +147,14 @@ java -javaagent:GammaX-1.0.jar -jar application.jar
 =====================================
 || GammaX started! Version: 1.0-alpha
 =====================================
-Find 1 gamma.json files
+Find <n> gamma.json files
 Start parsing
 ...
 ...
 ```
+
+`<n>` -> count of parsed files
+
 ---
 
 ## See Also:
