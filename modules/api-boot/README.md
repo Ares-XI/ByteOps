@@ -1,5 +1,10 @@
 # ByteOps Boot API
 
+> **Warning:** Do not launch ByteOps in Java Agents attached via the Java Attach API.
+> ByteOps will not work stably because `api-modify` adds fields and methods into the target class,
+> which is not supported by agents attached via Attach API (retransforming classes does not support adding fields and methods).
+> In the next release, I plan to add a Proxy Mode which will work with the Java Attach API.
+
 **api-boot** — core module for bootstrapping the ByteOps system inside Java Agents.
 
 This module provides:
