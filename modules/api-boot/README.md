@@ -106,7 +106,7 @@ public class GammaStart {
         }
 
         //Get all jar files(not recursive) in "plugin" folder:
-        try (Stream<Path> stream = Files.list(Path.of("plugins"))) {
+        try (Stream<Path> stream = Files.list(Paths.get("plugins"))) {
             stream.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".jar")).forEach(path -> classpath.add(path.toFile()));
         } catch (IOException e) {
             e.printStackTrace(System.err);
