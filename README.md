@@ -1,7 +1,7 @@
 # ByteOps (Class File Transformer by Annotation Processor)
 
 [![Java 9+](https://img.shields.io/badge/Java-9+-blue?style=flat)](https://adoptium.net/)
-[![Discord](https://img.shields.io/discord/123456789012345678?label=Discord&logo=discord&style=flat)](https://discord.gg/H5fX2dmE7)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=flat&logo=discord&logoColor=white)](https://discord.gg/H5fX2dmE7)
 
 ---
 
