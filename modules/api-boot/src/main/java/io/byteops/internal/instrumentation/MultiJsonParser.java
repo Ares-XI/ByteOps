@@ -22,23 +22,12 @@ public final class MultiJsonParser {
         for (File jarFile : InternalBootManager.getClassPath()) {
             try {
                 try (JarFile jar = new JarFile(jarFile)) {
-                    JarEntry paramEntry = null;
-                    JarEntry fixedEntry = jar.getJarEntry("$byteops.json");
-
-                    if(!InternalBootManager.getJsonName().equals("$byteops.json")) paramEntry = jar.getJarEntry(InternalBootManager.getJsonName());
-
-                    if (paramEntry != null) {
+                    JarEntry entry = null;
+                    if (!InternalBootManager.getJsonName().equals("$byteops.json")) entry = jar.getJarEntry(InternalBootManager.getJsonName() + ".json");
+                    if (entry == null) entry = jar.getJarEntry("$byteops.json");
+                    if (entry != null) {
                         JarClassLoader.instance.registerJar(jarFile);
-                        try (InputStream is = jar.getInputStream(paramEntry); Reader reader = new InputStreamReader(is)) {
-                            ModifyConfigFormat config = GSON.fromJson(reader, ModifyConfigFormat.class);
-                            if (config != null) result.add(config);
-                        } catch (JsonIOException | JsonSyntaxException | IOException | SecurityException e) {
-                            e.printStackTrace(System.err);
-                        }
-                    }
-                    else if (fixedEntry != null) {
-                        JarClassLoader.instance.registerJar(jarFile);
-                        try (InputStream is = jar.getInputStream(fixedEntry); Reader reader = new InputStreamReader(is)) {
+                        try (InputStream is = jar.getInputStream(entry); Reader reader = new InputStreamReader(is)) {
                             ModifyConfigFormat config = GSON.fromJson(reader, ModifyConfigFormat.class);
                             if (config != null) result.add(config);
                         } catch (JsonIOException | JsonSyntaxException | IOException | SecurityException e) {

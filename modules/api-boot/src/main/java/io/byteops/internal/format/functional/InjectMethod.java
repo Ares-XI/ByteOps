@@ -500,39 +500,16 @@ public final class InjectMethod {
 
     private boolean isGetInsn(AbstractInsnNode insn) {
         int opcode = insn.getOpcode();
-
-        if (opcode == GETFIELD || opcode == GETSTATIC) return true;
-        if (opcode == ILOAD || opcode == LLOAD || opcode == FLOAD || opcode == DLOAD || opcode == ALOAD) return true;
-        if (opcode == ARRAYLENGTH) return true;
-
-        if (isArrayLoad(opcode)) return true;
-
-        if (opcode == LDC) return true;
-        if (opcode == BIPUSH || opcode == SIPUSH) return true;
-        if (opcode >= ICONST_M1 && opcode <= ICONST_5) return true;
-        if (opcode == LCONST_0 || opcode == LCONST_1) return true;
-        if (opcode == FCONST_0 || opcode == FCONST_1 || opcode == FCONST_2) return true;
-        if (opcode == DCONST_0 || opcode == DCONST_1) return true;
-        return opcode == ACONST_NULL;
-    }
-
-    private boolean isArrayLoad(int opcode) {
-        return opcode == IALOAD || opcode == LALOAD || opcode == FALOAD ||
-                opcode == DALOAD || opcode == AALOAD || opcode == BALOAD ||
-                opcode == CALOAD || opcode == SALOAD;
+        return opcode == GETFIELD || opcode == GETSTATIC ||
+                opcode == ILOAD || opcode == LLOAD || opcode == FLOAD ||
+                opcode == DLOAD || opcode == ALOAD;
     }
 
     private boolean isPutInsn(AbstractInsnNode insn) {
         int opcode = insn.getOpcode();
-        if (opcode == PUTFIELD || opcode == PUTSTATIC) return true;
-        if (opcode == ISTORE || opcode == LSTORE || opcode == FSTORE || opcode == DSTORE || opcode == ASTORE) return true;
-        return isArrayStore(opcode);
-    }
-
-    private boolean isArrayStore(int opcode) {
-        return opcode == IASTORE || opcode == LASTORE || opcode == FASTORE ||
-                opcode == DASTORE || opcode == AASTORE || opcode == BASTORE ||
-                opcode == CASTORE || opcode == SASTORE;
+        return opcode == PUTFIELD || opcode == PUTSTATIC ||
+                opcode == ISTORE || opcode == LSTORE || opcode == FSTORE ||
+                opcode == DSTORE || opcode == ASTORE;
     }
 
     private int getStoreOpcode(Type type) {
@@ -588,37 +565,7 @@ public final class InjectMethod {
     }
     private boolean isInvokeOrBinaryOp(AbstractInsnNode insn) {
         int opcode = insn.getOpcode();
-
-        if (isMethodInvoke(opcode)) return true;
-        if (isBinaryOp(opcode)) return true;
-        if (opcode == CHECKCAST || opcode == INSTANCEOF) return true;
-
-        if (isComparisonOp(opcode)) return true;
-
-        if (isJumpOp(opcode)) return true;
-        return isConversionOp(opcode);
-    }
-
-    private boolean isComparisonOp(int opcode) {
-        if (opcode >= IFEQ && opcode <= IFLE) return true;
-        if (opcode >= IF_ICMPEQ && opcode <= IF_ICMPLE) return true;
-        if (opcode == IF_ACMPEQ || opcode == IF_ACMPNE) return true;
-        if (opcode == IFNULL || opcode == IFNONNULL) return true;
-        return opcode == LCMP || opcode == FCMPL || opcode == FCMPG || opcode == DCMPL || opcode == DCMPG;
-    }
-
-    private boolean isJumpOp(int opcode) {
-        if (opcode == GOTO) return true;
-        if (opcode == TABLESWITCH || opcode == LOOKUPSWITCH) return true;
-        if (opcode == JSR) return true;
-        return opcode == RET;
-    }
-
-    private boolean isConversionOp(int opcode) {
-        if (opcode == I2L || opcode == I2F || opcode == I2D || opcode == I2B || opcode == I2C || opcode == I2S) return true;
-        if (opcode == L2I || opcode == L2F || opcode == L2D) return true;
-        if (opcode == F2I || opcode == F2L || opcode == F2D) return true;
-        return opcode == D2I || opcode == D2L || opcode == D2F;
+        return isMethodInvoke(opcode) || isBinaryOp(opcode) || opcode == CHECKCAST || opcode == INSTANCEOF;
     }
 
     private boolean isMethodInvoke(int opcode) {
@@ -667,71 +614,33 @@ public final class InjectMethod {
 
         if (opcode == NEW) return new Type[0];
         if (opcode == NEWARRAY || opcode == ANEWARRAY) return new Type[]{Type.INT_TYPE};
-        if (opcode == LDC) return new Type[0];
-        if (opcode == BIPUSH || opcode == SIPUSH) return new Type[0];
-        if (opcode >= ICONST_M1 && opcode <= ICONST_5) return new Type[0];
-        if (opcode == LCONST_0 || opcode == LCONST_1) return new Type[0];
-        if (opcode == FCONST_0 || opcode == FCONST_1 || opcode == FCONST_2) return new Type[0];
-        if (opcode == DCONST_0 || opcode == DCONST_1) return new Type[0];
-        if (opcode == ACONST_NULL) return new Type[0];
-        if (opcode == ILOAD || opcode == LLOAD || opcode == FLOAD || opcode == DLOAD || opcode == ALOAD) return new Type[0];
-        if (opcode == GETSTATIC) return new Type[0];
+        if (opcode == CHECKCAST || opcode == INSTANCEOF) return new Type[]{Type.getType("Ljava/lang/Object;")};
         if (opcode == GETFIELD) {
-            if (insn instanceof FieldInsnNode) return new Type[]{Type.getType("L" + ((FieldInsnNode) insn).owner + ";")};
+            if (insn instanceof FieldInsnNode) {
+                String ownerType = "L" + ((FieldInsnNode) insn).owner + ";";
+                return new Type[]{Type.getType(ownerType)};
+            }
             return new Type[]{Type.getType("Ljava/lang/Object;")};
         }
-
+        if (opcode == GETSTATIC) return new Type[0];
+        if (opcode == ILOAD || opcode == LLOAD || opcode == FLOAD || opcode == DLOAD || opcode == ALOAD) return new Type[0];
+        if (opcode == PUTFIELD) {
+            if (insn instanceof FieldInsnNode) {
+                String ownerType = "L" + ((FieldInsnNode) insn).owner + ";";
+                Type valueType = Type.getType(((FieldInsnNode) insn).desc);
+                return new Type[]{Type.getType(ownerType), valueType};
+            }
+            return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE};
+        }
         if (opcode == PUTSTATIC) {
             if (insn instanceof FieldInsnNode) return new Type[]{Type.getType(((FieldInsnNode) insn).desc)};
             return new Type[]{Type.INT_TYPE};
         }
-        if (opcode == PUTFIELD) {
-            if (insn instanceof FieldInsnNode) return new Type[]{Type.getType("L" + ((FieldInsnNode) insn).owner + ";"), Type.getType(((FieldInsnNode) insn).desc)};
-            return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE};
-        }
-
         if (opcode == ISTORE) return new Type[]{Type.INT_TYPE};
         if (opcode == LSTORE) return new Type[]{Type.LONG_TYPE};
         if (opcode == FSTORE) return new Type[]{Type.FLOAT_TYPE};
         if (opcode == DSTORE) return new Type[]{Type.DOUBLE_TYPE};
         if (opcode == ASTORE) return new Type[]{Type.getType("Ljava/lang/Object;")};
-
-        if (opcode == IALOAD || opcode == FALOAD || opcode == BALOAD || opcode == CALOAD || opcode == SALOAD) return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE};
-        if (opcode == LALOAD || opcode == DALOAD) return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE};
-        if (opcode == AALOAD) return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE};
-
-        if (opcode == IASTORE || opcode == FASTORE || opcode == BASTORE || opcode == CASTORE || opcode == SASTORE) return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE, Type.INT_TYPE};
-        if (opcode == LASTORE) return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE, Type.LONG_TYPE};
-        if (opcode == DASTORE) return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE, Type.DOUBLE_TYPE};
-        if (opcode == AASTORE) return new Type[]{Type.getType("Ljava/lang/Object;"), Type.INT_TYPE, Type.getType("Ljava/lang/Object;")};
-
-        if (opcode == ARRAYLENGTH) return new Type[]{Type.getType("Ljava/lang/Object;")};
-
-        if (opcode == CHECKCAST || opcode == INSTANCEOF) return new Type[]{Type.getType("Ljava/lang/Object;")};
-
-        if (opcode >= IFEQ && opcode <= IFLE) return new Type[]{Type.INT_TYPE};
-        if (opcode >= IF_ICMPEQ && opcode <= IF_ICMPLE) return new Type[]{Type.INT_TYPE, Type.INT_TYPE};
-        if (opcode == IF_ACMPEQ || opcode == IF_ACMPNE) return new Type[]{Type.getType("Ljava/lang/Object;"), Type.getType("Ljava/lang/Object;")};
-        if (opcode == IFNULL || opcode == IFNONNULL) return new Type[]{Type.getType("Ljava/lang/Object;")};
-        if (opcode == LCMP) return new Type[]{Type.LONG_TYPE, Type.LONG_TYPE};
-        if (opcode == FCMPL || opcode == FCMPG) return new Type[]{Type.FLOAT_TYPE, Type.FLOAT_TYPE};
-        if (opcode == DCMPL || opcode == DCMPG) return new Type[]{Type.DOUBLE_TYPE, Type.DOUBLE_TYPE};
-
-        if (opcode == GOTO || opcode == JSR) return new Type[0];
-        if (opcode == TABLESWITCH || opcode == LOOKUPSWITCH) return new Type[]{Type.INT_TYPE};
-        if (opcode == RET) return new Type[0];
-
-        if (opcode == RETURN) return new Type[0];
-        if (opcode == IRETURN) return new Type[]{Type.INT_TYPE};
-        if (opcode == LRETURN) return new Type[]{Type.LONG_TYPE};
-        if (opcode == FRETURN) return new Type[]{Type.FLOAT_TYPE};
-        if (opcode == DRETURN) return new Type[]{Type.DOUBLE_TYPE};
-        if (opcode == ARETURN) return new Type[]{Type.getType("Ljava/lang/Object;")};
-
-        if (opcode == I2L || opcode == I2F || opcode == I2D || opcode == I2B || opcode == I2C || opcode == I2S) return new Type[]{Type.INT_TYPE};
-        if (opcode == L2I || opcode == L2F || opcode == L2D) return new Type[]{Type.LONG_TYPE};
-        if (opcode == F2I || opcode == F2L || opcode == F2D) return new Type[]{Type.FLOAT_TYPE};
-        if (opcode == D2I || opcode == D2L || opcode == D2F) return new Type[]{Type.DOUBLE_TYPE};
 
         return getBinaryOpOperandTypes(opcode);
     }
