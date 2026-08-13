@@ -1,6 +1,6 @@
 # ByteOps (Class File Transformer by Annotation Processor)
 
-[![Java 9+](https://img.shields.io/badge/Java-9+-blue?style=flat)](https://adoptium.net/)
+[![Java 9+](https://img.shields.io/badge/Java-9+-blue?style=flat)](https://www.oracle.com/java/technologies/javase/9-documentation.html)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=flat&logo=discord&logoColor=white)](https://discord.gg/H5fX2dmE7)
 
 ---
@@ -25,9 +25,3 @@ Used in custom Java Agents. Contains all instruments to launch ByteOps with argu
 Used in projects with modifications. Contains annotations for modifying classes.
 
 [Modify API Info →](modules/api-modify/README.md)
-
----
-
-## License
-
-MIT License © 2026
