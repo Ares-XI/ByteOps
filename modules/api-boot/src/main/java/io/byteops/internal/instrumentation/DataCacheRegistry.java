@@ -18,7 +18,7 @@ import io.byteops.internal.format.functional.InjectMethod;
 import io.byteops.internal.format.functional.InterfaceImplementation;
 import io.byteops.internal.format.functional.ExtendField;
 import io.byteops.internal.format.functional.ExtendMethod;
-import io.byteops.internal.util.data.ModifyConfigFormat;
+import io.byteops.internal.util.ModifyConfigFormat;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

@@ -14,6 +14,7 @@ This module provides:
 ---
 
 ## Dependency:
+
 Maven:
 ```xml
 <dependency>
@@ -28,7 +29,7 @@ Gradle(groovy):
 implementation 'io.byteops:api-boot:1.0.0'
 ```
 
-Gradle(kts)
+Gradle(kotlin script)
 ```kotlin
 implementation("io.byteops:api-boot:1.0.0")
 ```
@@ -37,7 +38,7 @@ implementation("io.byteops:api-boot:1.0.0")
 
 ## Starting:
 
-To start boot api you need:
+To start `api-boot` you need:
 - Instrumentation (provided in Java Agents)
 - Array of JAR libraries (`File[]`).
 - Array of JARs which contain modifications(`File[]`).
@@ -50,11 +51,11 @@ io.byteops.boot.BootManager.init(Instrumentation inst, File[] libs, File[] class
 
 ### Flags to start:
 
-| Flag                                       | Description                                 | Cardinality                                              | Default Value |
-|--------------------------------------------|---------------------------------------------|----------------------------------------------------------|---------------|
-| `BootFlag.Name(String name)`               | Sets the agent name                         | Once (last wins)                                         | `"ByteOps"` |
-| `BootFlag.Version(String version)`         | Sets the agent version                      | Once (last wins)                                         | `"1.0-alpha-build-0"` |
-| `BootFlag.ConfigName(String name)`         | JSON config filename in JARs with modifings | Once (last wins)                                         | `"byte-ops"` |
+| Flag                                       | Description                                 | Cardinality                                              | Default Value          |
+|--------------------------------------------|---------------------------------------------|----------------------------------------------------------|------------------------|
+| `BootFlag.Name(String name)`               | Sets the agent name                         | Once (last wins)                                         | `"ByteOps"`            |
+| `BootFlag.Version(String version)`         | Sets the agent version                      | Once (last wins)                                         | `"1.0-alpha-build-0"`  |
+| `BootFlag.ConfigName(String name)`         | JSON config filename in JARs with modifings | Once (last wins)                                         | `"byte-ops"`           |
 | `BootFlag.BlockedClass(Class<?> classRef)` | Blocks class from modification              | Multiple(one boot flag(blockedClass) -> +1 blockedClass) | See default list below |
 
 ### Packages which blocked by default:
@@ -160,8 +161,10 @@ Start parsing
 
 ## See Also:
 - [Modify API](../api-modify/README.md) — annotation-based modification API
+- [Examples](../../examples) - package with some examples and help how to use `api-boot` and `api-modify`
+
 ---
 
-## License
+## License:
 
 MIT License © 2026

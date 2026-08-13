@@ -1,8 +1,10 @@
 package io.byteops.internal.instrumentation;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import io.byteops.internal.InternalBootManager;
-import io.byteops.internal.util.data.ModifyConfigFormat;
+import io.byteops.internal.util.ModifyConfigFormat;
 
 import java.io.*;
 import java.util.*;
@@ -20,9 +22,28 @@ public final class MultiJsonParser {
         for (File jarFile : InternalBootManager.getClassPath()) {
             try {
                 try (JarFile jar = new JarFile(jarFile)) {
-                    if (jar.getJarEntry(InternalBootManager.getJsonName() + ".json") != null) {
+                    JarEntry paramEntry = null;
+                    JarEntry fixedEntry = jar.getJarEntry("$byteops.json");
+
+                    if(!InternalBootManager.getJsonName().equals("$byteops.json")) paramEntry = jar.getJarEntry(InternalBootManager.getJsonName());
+
+                    if (paramEntry != null) {
                         JarClassLoader.instance.registerJar(jarFile);
-                        parseConfigFromJar(jar, result);
+                        try (InputStream is = jar.getInputStream(paramEntry); Reader reader = new InputStreamReader(is)) {
+                            ModifyConfigFormat config = GSON.fromJson(reader, ModifyConfigFormat.class);
+                            if (config != null) result.add(config);
+                        } catch (JsonIOException | JsonSyntaxException | IOException | SecurityException e) {
+                            e.printStackTrace(System.err);
+                        }
+                    }
+                    else if (fixedEntry != null) {
+                        JarClassLoader.instance.registerJar(jarFile);
+                        try (InputStream is = jar.getInputStream(fixedEntry); Reader reader = new InputStreamReader(is)) {
+                            ModifyConfigFormat config = GSON.fromJson(reader, ModifyConfigFormat.class);
+                            if (config != null) result.add(config);
+                        } catch (JsonIOException | JsonSyntaxException | IOException | SecurityException e) {
+                            e.printStackTrace(System.err);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -31,18 +52,6 @@ public final class MultiJsonParser {
         }
 
         return result;
-    }
-
-    private void parseConfigFromJar(JarFile jar, List<ModifyConfigFormat> result) {
-        try {
-            JarEntry entry = jar.getJarEntry(InternalBootManager.getJsonName() + ".json");
-            try (InputStream is = jar.getInputStream(entry); Reader reader = new InputStreamReader(is)) {
-                ModifyConfigFormat config = GSON.fromJson(reader, ModifyConfigFormat.class);
-                if (config != null) result.add(config);
-            }
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-        }
     }
 
     private MultiJsonParser() {}

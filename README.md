@@ -1,5 +1,9 @@
 # ByteOps (Class File Transformer by Annotation Processor)
 
+![Java 9+](https://img.shields.io/badge/Java-9+-blue)
+
+---
+
 **ByteOps** — runtime bytecode modification library for Java, built on top of `java.lang.instrument.Instrumentation`.
 
 Perfect for:
@@ -20,3 +24,9 @@ Used in custom Java Agents. Contains all instruments to launch ByteOps with argu
 Used in projects with modifications. Contains annotations for modifying classes.
 
 [Modify API Info →](modules/api-modify/README.md)
+
+---
+
+## License
+
+MIT License © 2026

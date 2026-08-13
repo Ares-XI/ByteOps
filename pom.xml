@@ -9,6 +9,8 @@
     <modules>
         <module>modules/api-boot</module>
         <module>modules/api-modify</module>
+        <module>modules/GammaX-test-agent</module>
+        <module>modules/GammaX-test-plugin</module>
     </modules>
 
     <properties>
