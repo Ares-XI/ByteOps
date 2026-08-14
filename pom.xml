@@ -6,6 +6,14 @@
     <version>1.0.0</version>
     <packaging>pom</packaging>
 
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/Ares-XI/ByteOps</url>
+        </repository>
+    </distributionManagement>
+
     <modules>
         <module>modules/api-boot</module>
         <module>modules/api-modify</module>
@@ -14,7 +22,8 @@
     </modules>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>9</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 </project>

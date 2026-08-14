@@ -1,13 +1,19 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.byteops</groupId>
+    <parent>
+        <groupId>io.byteops</groupId>
+        <artifactId>ByteOps</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
     <artifactId>api-modify</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>9</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -21,10 +27,12 @@
     </dependencies>
 
     <build>
+        <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
                 <configuration>
                     <source>9</source>
                     <target>9</target>
@@ -37,12 +45,51 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
+                        <goals><goal>shade</goal></goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/*/module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.moditect</groupId>
+                <artifactId>moditect-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <executions>
+                    <execution>
+                        <id>add-module-info</id>
+                        <phase>package</phase>
+                        <goals><goal>add-module-info</goal></goals>
+                        <configuration>
+                            <overwriteExistingFiles>true</overwriteExistingFiles>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <modules>
+                                <module>
+                                    <file>${project.build.directory}/${project.artifactId}-${project.version}.jar</file>
+                                    <moduleInfoSource>
+                                        module api.modify {
+                                            exports io.byteops.modify;
+                                            exports io.byteops.modify.util;
+                                            requires java.instrument;
+                                        }
+                                    </moduleInfoSource>
+                                </module>
+                            </modules>
                         </configuration>
                     </execution>
                 </executions>

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class BootManager {
+    private BootManager() {}
+
     public static void init(Instrumentation inst, File[] libs, File[] classpath, BootFlag... args) {
         if(inst == null) throw new NullPointerException("Instrumentation must be not null");
 

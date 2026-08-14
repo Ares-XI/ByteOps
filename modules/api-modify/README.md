@@ -25,6 +25,34 @@
 
 ---
 
+## Repository:
+
+Maven:
+```xml
+<repository>
+    <id>github</id>
+    <name>GitHub Packages</name>
+    <url>https://maven.pkg.github.com/Ares-XI</url>
+</repository>
+```
+Gradle(groovy):
+```groovy
+maven {
+    name = "GitHubPackages"
+    url = "https://maven.pkg.github.com/Ares-XI"
+}
+```
+
+Gradle(kotlin script):
+```kotlin
+maven {
+    name = "GitHubPackages"
+    url = uri("https://maven.pkg.github.com/Ares-XI")
+}
+```
+
+---
+
 ## Dependency:
 
 Maven:

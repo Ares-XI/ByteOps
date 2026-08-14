@@ -4,12 +4,41 @@
 > ByteOps will not work stably because `api-modify` adds fields and methods into the target class,
 > which is not supported by agents attached via Attach API (retransforming/redefining classes does not support adding fields and methods).
 > In the next release, I plan to add a Proxy Mode which will work with the Java Attach API.
+> Also `api-boot` export all `api-modify` to avoid module conflicts.
 
 **api-boot** — core module for bootstrapping the ByteOps system inside Java Agents.
 
 This module provides:
 - `BootManager` — main entry point for initialization
 - `BootFlag` — configuration nodes for customizing behavior
+
+---
+
+## Repository:
+
+Maven:
+```xml
+<repository>
+    <id>github</id>
+    <name>GitHub Packages</name>
+    <url>https://maven.pkg.github.com/Ares-XI</url>
+</repository>
+```
+Gradle(groovy):
+```groovy
+maven {
+    name = "GitHubPackages"
+    url = "https://maven.pkg.github.com/Ares-XI"
+}
+```
+
+Gradle(kotlin script):
+```kotlin
+maven {
+    name = "GitHubPackages"
+    url = uri("https://maven.pkg.github.com/Ares-XI")
+}
+```
 
 ---
 
