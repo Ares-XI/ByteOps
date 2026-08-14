@@ -30,24 +30,16 @@
 
 Maven:
 ```xml
-<repository>
-  <id>github</id>
-  <name>GitHub Packages</name>
-  <url>https://maven.pkg.github.com/Ares-XI</url>
-</repository>
+not done yet
 ```
 Gradle(groovy):
 ```groovy
-maven {
-  url 'https://jitpack.io'
-}
+not done yet
 ```
 
 Gradle(kotlin script):
 ```kotlin
-maven {
-  url = uri("https://jitpack.io")
-}
+not done yet
 ```
 
 [**Back to info**](#info)
@@ -58,22 +50,17 @@ maven {
 
 Maven:
 ```xml
-<dependency>
-    <groupId>io.byteops</groupId>
-    <artifactId>api-modify</artifactId>
-    <version>1.0.0</version>
-    <scope>provided</scope>
-</dependency>
+not done yet
 ```
 
 Gradle(groovy):
 ```groovy
-compileOnly 'com.github.Ares-XI.ByteOps:api-modify:1.0.0'
+not done yet
 ```
 
 Gradle(kotlin script)
 ```kotlin
-compileOnly("com.github.Ares-XI.ByteOps:api-modify:1.0.0")
+not done yet
 ```
 
 [**Back to info**](#info)
@@ -805,7 +792,7 @@ Super classes will not be moved to the target class, an alternative use `interfa
 ---
 
 ## See Also:
-- [Boot API](../api-boot/README.md) — launch modification API.
+- [Boot API](../byteops-api-boot/README.md) — launch modification API.
 - [Examples](../../examples) - package with some examples and help how to use `api-boot` and `api-modify`
 
 ---
