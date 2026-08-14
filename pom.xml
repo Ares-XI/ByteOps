@@ -7,8 +7,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>modules/api-boot</module>
-        <module>modules/api-modify</module>
+        <module>modules/byteops-api-boot</module>
+        <module>modules/byteops-api-modify</module>
     </modules>
 
     <properties>
