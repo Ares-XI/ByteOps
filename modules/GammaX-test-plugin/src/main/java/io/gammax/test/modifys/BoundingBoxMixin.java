@@ -73,7 +73,7 @@ public abstract class BoundingBoxMixin implements BoundingBoxAccess {
             double.class,
     }))
     private InjectResult<Void> onTest(@Arg(0) double minX) {
-        System.out.println("init: " + minX);
+        System.out.println("init:" + ((Object) this).getClass().getName() + ", minX: " + minX);
         return InjectResult.pass();
     }
 
