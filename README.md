@@ -19,9 +19,9 @@ Perfect for:
 ### `byteops-boot` — core bootstrapping API
 Used in custom Java Agents. Contains all instruments to launch ByteOps with arguments.
 
-[Boot API Info →](modules/api-boot/README.md)
+[Boot API Info →](modules/byteops-api-boot/README.md)
 
 ### `byteops-modify` — class modification API
 Used in projects with modifications. Contains annotations for modifying classes.
 
-[Modify API Info →](modules/api-modify/README.md)
+[Modify API Info →](modules/byteops-api-mofify/README.md)
