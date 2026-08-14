@@ -7,6 +7,7 @@
 **api-modify** — annotation-based API for modifying Java classes at runtime.
 
 ### Info:
+- [Repository](#repository)
 - [Dependency](#dependency)
 - [Config](#config)
 - [Modify](#modify)
@@ -50,6 +51,8 @@ maven {
     url = uri("https://maven.pkg.github.com/Ares-XI")
 }
 ```
+
+[**Back to info**](#info)
 
 ---
 
