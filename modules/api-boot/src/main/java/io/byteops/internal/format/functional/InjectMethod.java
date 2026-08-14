@@ -724,11 +724,11 @@ public final class InjectMethod {
         }
     }
 
-    public void preparing(byte[] bytecode, int index) {
+    public void preparing(byte[] classBytes, int index) {
         this.injectorIndex = index;
 
         ClassNode preparedClassNode = new ClassNode();
-        new ClassReader(bytecode).accept(preparedClassNode, ClassReader.SKIP_FRAMES);
+        new ClassReader(classBytes).accept(preparedClassNode, ClassReader.SKIP_FRAMES);
 
         MethodReference targetSig = annotation.method();
         String targetDesc = DescriptorFormat.getMethodDescriptor(targetSig);
@@ -755,48 +755,53 @@ public final class InjectMethod {
         preparedPoints = findInjectionPoints(preparedTargetMethod);
     }
 
-    public byte[] inject(byte[] bytecode) {
-        if (preparedTargetMethod == null || preparedPoints == null || preparedPoints.isEmpty()) return bytecode;
+    public byte[] inject(byte[] classBytes) {
+        try {
+            if (preparedTargetMethod == null || preparedPoints == null || preparedPoints.isEmpty()) return classBytes;
 
-        ClassNode classNode = new ClassNode();
-        new ClassReader(bytecode).accept(classNode, ClassReader.SKIP_FRAMES);
+            ClassNode classNode = new ClassNode();
+            new ClassReader(classBytes).accept(classNode, ClassReader.SKIP_FRAMES);
 
-        MethodReference targetSig = annotation.method();
-        String targetDesc = DescriptorFormat.getMethodDescriptor(targetSig);
-        MethodNode targetMethod = null;
+            MethodReference targetSig = annotation.method();
+            String targetDesc = DescriptorFormat.getMethodDescriptor(targetSig);
+            MethodNode targetMethod = null;
 
-        for (MethodNode method : classNode.methods) {
-            if (method.name.equals(targetSig.method()) && method.desc.equals(targetDesc)) {
-                targetMethod = method;
-                break;
+            for (MethodNode method : classNode.methods) {
+                if (method.name.equals(targetSig.method()) && method.desc.equals(targetDesc)) {
+                    targetMethod = method;
+                    break;
+                }
             }
-        }
 
-        if (targetMethod == null) return bytecode;
+            if (targetMethod == null) return classBytes;
 
-        List<AbstractInsnNode> points = findInjectionPoints(targetMethod);
-        if (points.isEmpty()) return bytecode;
+            List<AbstractInsnNode> points = findInjectionPoints(targetMethod);
+            if (points.isEmpty()) return classBytes;
 
-        boolean targetStatic = (targetMethod.access & ACC_STATIC) != 0;
-        String injectorName = "injector$" + UUID.randomUUID().toString().replace("-", "");
-        MethodNode injectorMethod = createInjectorMethodNode(injectorName, targetStatic);
-        classNode.methods.add(injectorMethod);
+            boolean targetStatic = (targetMethod.access & ACC_STATIC) != 0;
+            String injectorName = "injector$" + UUID.randomUUID().toString().replace("-", "");
+            MethodNode injectorMethod = createInjectorMethodNode(injectorName, targetStatic);
+            classNode.methods.add(injectorMethod);
 
-        int baseSlot = originalMaxLocals + injectorIndex * SLOTS_PER_INJECTOR;
+            int baseSlot = originalMaxLocals + injectorIndex * SLOTS_PER_INJECTOR;
 
-        for (AbstractInsnNode point : points) injectAtPoint(targetMethod, point, injectorName, baseSlot);
+            for (AbstractInsnNode point : points) injectAtPoint(targetMethod, point, injectorName, baseSlot);
 
-        for (MethodNode method : classNode.methods) {
-            Iterator<AbstractInsnNode> it = method.instructions.iterator();
-            while (it.hasNext()) {
-                AbstractInsnNode insn = it.next();
-                if (insn instanceof FrameNode) it.remove();
+            for (MethodNode method : classNode.methods) {
+                Iterator<AbstractInsnNode> it = method.instructions.iterator();
+                while (it.hasNext()) {
+                    AbstractInsnNode insn = it.next();
+                    if (insn instanceof FrameNode) it.remove();
+                }
             }
-        }
 
-        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-        classNode.accept(writer);
-        return writer.toByteArray();
+            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+            classNode.accept(writer);
+            return writer.toByteArray();
+        } catch (Throwable t) {
+            t.printStackTrace(System.err);
+            return classBytes;
+        }
     }
 
     public int getPriority() {

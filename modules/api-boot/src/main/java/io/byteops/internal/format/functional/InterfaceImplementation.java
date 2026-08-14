@@ -16,32 +16,37 @@ public final class InterfaceImplementation implements FunctionalModifier {
 
     @Override
     public byte[] modify(byte[] classBytes) {
-        if (classBytes == null || classBytes.length == 0) {
-            new ModifyInternalException("class bytes are invalid").printStackTrace(System.err);
+        try {
+            if (classBytes == null || classBytes.length == 0) {
+                new ModifyInternalException("class bytes are invalid").printStackTrace(System.err);
+                return classBytes;
+            }
+
+            ClassReader reader = new ClassReader(classBytes);
+            ClassNode classNode = new ClassNode();
+
+            reader.accept(classNode, ClassReader.EXPAND_FRAMES);
+
+            String interfaceName = interfaceClass.getName().replace('.', '/');
+
+            if (!classNode.interfaces.contains(interfaceName)) classNode.interfaces.add(interfaceName);
+
+            validateMethods(classNode);
+
+            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+            classNode.accept(writer);
+
+            byte[] result = writer.toByteArray();
+
+            ClassReader checkReader = new ClassReader(result);
+            ClassNode checkNode = new ClassNode();
+            checkReader.accept(checkNode, 0);
+
+            return result;
+        } catch (Throwable t) {
+            t.printStackTrace(System.err);
             return classBytes;
         }
-
-        ClassReader reader = new ClassReader(classBytes);
-        ClassNode classNode = new ClassNode();
-
-        reader.accept(classNode, ClassReader.EXPAND_FRAMES);
-
-        String interfaceName = interfaceClass.getName().replace('.', '/');
-
-        if (!classNode.interfaces.contains(interfaceName)) classNode.interfaces.add(interfaceName);
-
-        validateMethods(classNode);
-
-        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-        classNode.accept(writer);
-
-        byte[] result = writer.toByteArray();
-
-        ClassReader checkReader = new ClassReader(result);
-        ClassNode checkNode = new ClassNode();
-        checkReader.accept(checkNode, 0);
-
-        return result;
     }
 
     public InterfaceImplementation(Class<?> interfaceClass) {

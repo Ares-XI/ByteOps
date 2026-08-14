@@ -41,28 +41,33 @@ public final class ExtendField implements FunctionalModifier {
     }
 
     @Override
-    public byte[] modify(byte[] originalClassBytes) {
-        ClassReader reader = new ClassReader(originalClassBytes);
-        ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+    public byte[] modify(byte[] classBytes) {
+        try {
+            ClassReader reader = new ClassReader(classBytes);
+            ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
-        ClassVisitor visitor = new ClassVisitor(Opcodes.ASM9, writer) {
-            @Override
-            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                super.visit(version, access, name, signature, superName, interfaces);
+            ClassVisitor visitor = new ClassVisitor(Opcodes.ASM9, writer) {
+                @Override
+                public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                    super.visit(version, access, name, signature, superName, interfaces);
 
-                FieldVisitor fv = cv.visitField(
-                        DescriptorFormat.getAccessModifiers(field),
-                        field.getName(),
-                        DescriptorFormat.getDescriptor(field.getType()),
-                        null,
-                        constantValue
-                );
+                    FieldVisitor fv = cv.visitField(
+                            DescriptorFormat.getAccessModifiers(field),
+                            field.getName(),
+                            DescriptorFormat.getDescriptor(field.getType()),
+                            null,
+                            constantValue
+                    );
 
-                if (fv != null) fv.visitEnd();
-            }
-        };
+                    if (fv != null) fv.visitEnd();
+                }
+            };
 
-        reader.accept(visitor, ClassReader.EXPAND_FRAMES);
-        return writer.toByteArray();
+            reader.accept(visitor, ClassReader.EXPAND_FRAMES);
+            return writer.toByteArray();
+        } catch (Throwable t) {
+            t.printStackTrace(System.err);
+            return classBytes;
+        }
     }
 }

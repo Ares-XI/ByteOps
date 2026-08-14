@@ -78,38 +78,43 @@ public final class ExtendMethod implements FunctionalModifier {
     }
 
     @Override
-    public byte[] modify(byte[] targetClassBytes) {
-        if (instructions == null || instructions.size() == 0) return targetClassBytes;
+    public byte[] modify(byte[] classBytes) {
+        try {
+            if (instructions == null || instructions.size() == 0) return classBytes;
 
-        ClassReader reader = new ClassReader(targetClassBytes);
-        ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+            ClassReader reader = new ClassReader(classBytes);
+            ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
-        ClassVisitor vis = new ClassVisitor(Opcodes.ASM9, writer) {
-            @Override
-            public void visitEnd() {
-                MethodVisitor mv = cv.visitMethod(
+            ClassVisitor vis = new ClassVisitor(Opcodes.ASM9, writer) {
+                @Override
+                public void visitEnd() {
+                    MethodVisitor mv = cv.visitMethod(
                         DescriptorFormat.getMethodAccess(method),
                         method.getName(),
                         DescriptorFormat.getMethodDescriptor(method),
                         null,
                         null
-                );
+                    );
 
-                mv.visitCode();
+                    mv.visitCode();
 
-                for (TryCatchBlockNode tcb : visitor.tryCatchBlocks) tcb.accept(mv);
-                for (AbstractInsnNode insn : visitor.instructions) insn.accept(mv);
-                for (LineNumberNode line : visitor.lineNumbers) line.accept(mv);
-                for (LocalVariableNode local : visitor.localVariables) local.accept(mv);
+                    for (TryCatchBlockNode tcb : visitor.tryCatchBlocks) tcb.accept(mv);
+                    for (AbstractInsnNode insn : visitor.instructions) insn.accept(mv);
+                    for (LineNumberNode line : visitor.lineNumbers) line.accept(mv);
+                    for (LocalVariableNode local : visitor.localVariables) local.accept(mv);
 
-                mv.visitMaxs(0, 0);
-                mv.visitEnd();
+                    mv.visitMaxs(0, 0);
+                    mv.visitEnd();
 
-                super.visitEnd();
-            }
-        };
+                    super.visitEnd();
+                }
+            };
 
-        reader.accept(vis, ClassReader.EXPAND_FRAMES);
-        return writer.toByteArray();
+            reader.accept(vis, ClassReader.EXPAND_FRAMES);
+            return writer.toByteArray();
+        } catch (Throwable t) {
+            t.printStackTrace(System.err);
+            return classBytes;
+        }
     }
 }
