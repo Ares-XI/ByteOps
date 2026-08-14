@@ -81,7 +81,7 @@
                                 <module>
                                     <file>${project.build.directory}/${project.artifactId}-${project.version}.jar</file>
                                     <moduleInfoSource>
-                                        module api.modify {
+                                        module byteops.api.modify {
                                             exports io.byteops.modify;
                                             exports io.byteops.modify.util;
                                             requires java.instrument;

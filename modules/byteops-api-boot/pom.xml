@@ -98,7 +98,7 @@
                                 <module>
                                     <file>${project.build.directory}/${project.artifactId}-${project.version}.jar</file>
                                     <moduleInfoSource>
-                                        module api.boot {
+                                        module byteops.api.boot {
                                             exports io.byteops.boot;
                                             requires java.instrument;
                                         }
