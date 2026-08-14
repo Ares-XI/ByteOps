@@ -5,6 +5,7 @@
         <groupId>com.github.Ares-XI</groupId>
         <artifactId>byteops</artifactId>
         <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>byteops-api-boot</artifactId>
