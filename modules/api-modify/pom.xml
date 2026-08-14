@@ -2,14 +2,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.byteops</groupId>
-        <artifactId>ByteOps</artifactId>
+        <groupId>com.github.Ares-XI</groupId>
+        <artifactId>byteops</artifactId>
         <version>1.0.0</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>api-modify</artifactId>
-    <version>1.0.0</version>
+    <artifactId>byteops-api-modify</artifactId>
     <packaging>jar</packaging>
 
     <properties>
