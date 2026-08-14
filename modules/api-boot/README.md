@@ -27,16 +27,14 @@ Maven:
 Gradle(groovy):
 ```groovy
 maven {
-    name = "GitHubPackages"
-    url = "https://maven.pkg.github.com/Ares-XI"
+    url 'https://jitpack.io' 
 }
 ```
 
 Gradle(kotlin script):
 ```kotlin
-maven {
-    name = "GitHubPackages"
-    url = uri("https://maven.pkg.github.com/Ares-XI")
+maven { 
+    url = uri("https://jitpack.io")
 }
 ```
 
@@ -55,12 +53,12 @@ Maven:
 
 Gradle(groovy):
 ```groovy
-implementation 'io.byteops:api-boot:1.0.0'
+implementation 'com.github.Ares-XI.ByteOps:api-boot:1.0.0'
 ```
 
 Gradle(kotlin script)
 ```kotlin
-implementation("io.byteops:api-boot:1.0.0")
+implementation("com.github.Ares-XI.ByteOps:api-boot:1.0.0")
 ```
 
 ---
