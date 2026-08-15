@@ -1,7 +1,9 @@
 package io.byteops.internal.instrumentation;
 
+import io.byteops.internal.InternalBootManager;
+import org.jetbrains.annotations.ApiStatus;
+
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -11,34 +13,33 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public final class JarClassLoader extends URLClassLoader implements AutoCloseable {
-    public static final JarClassLoader instance = new JarClassLoader();
+@ApiStatus.Internal
+public abstract class JarClassLoader extends URLClassLoader implements AutoCloseable {
+    private static JarClassLoader instance;
 
-    private final Map<String, byte[]> byteCache = new ConcurrentHashMap<>();
-    private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
-    private final Map<String, JarFile> jarFiles = new HashMap<>();
-    private final Set<Class<?>> applyToDefine = new HashSet<>();
+    public static JarClassLoader getInstance() {
+        return instance;
+    }
 
-    public Map<String, JarFile> getJarFiles() {
+    protected static void setInstance(JarClassLoader instance) {
+        if(instance.getClass().getName().equals("io.byteops.shadow.ShadowClassLoader")) JarClassLoader.instance = instance;
+    }
+
+    protected final Map<String, byte[]> byteCache = new ConcurrentHashMap<>();
+    protected final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
+    protected final Map<String, JarFile> jarFiles = new HashMap<>();
+    protected final Set<Class<?>> applyToDefine = new HashSet<>();
+
+    public final Map<String, JarFile> getJarFiles() {
         return jarFiles;
     }
 
-    public Set<Class<?>> getApplyToDefine() {
+    public final Set<Class<?>> getApplyToDefine() {
         return applyToDefine;
     }
 
-    public void registerJar(File jarFile) throws Exception {
-        JarFile jar = new JarFile(jarFile);
-        jarFiles.put(jarFile.getAbsolutePath(), jar);
-        super.addURL(jarFile.toURI().toURL());
-    }
-
-    public void registerClassToDefine(Class<?> targetClass) {
-        applyToDefine.add(targetClass);
-    }
-
     @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
+    protected final Class<?> findClass(String name) throws ClassNotFoundException {
         if (classCache.containsKey(name)) return classCache.get(name);
 
         byte[] bytes = getClassBytes(name);
@@ -50,7 +51,7 @@ public final class JarClassLoader extends URLClassLoader implements AutoCloseabl
         return clazz;
     }
 
-    public byte[] getClassBytes(String className) {
+    public final byte[] getClassBytes(String className) {
         if (byteCache.containsKey(className)) return byteCache.get(className);
 
         String classPath = className.replace('.', '/') + ".class";
@@ -71,28 +72,14 @@ public final class JarClassLoader extends URLClassLoader implements AutoCloseabl
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace(InternalBootManager.getInstance().getPrintStream());
             }
         }
 
         return null;
     }
 
-    @Override
-    public void close() {
-        byteCache.clear();
-        classCache.clear();
-        for (JarFile jar : jarFiles.values()) {
-            try {
-                jar.close();
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
-            }
-        }
-        jarFiles.clear();
-    }
-
-    private JarClassLoader() {
+    public JarClassLoader() {
         super(new URL[0]);
     }
 }

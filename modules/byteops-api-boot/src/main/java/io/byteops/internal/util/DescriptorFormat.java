@@ -1,6 +1,7 @@
 package io.byteops.internal.util;
 
 import io.byteops.modify.util.MethodReference;
+import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
@@ -8,6 +9,7 @@ import org.objectweb.asm.tree.MethodNode;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+@ApiStatus.Internal
 public final class DescriptorFormat {
     public static int getAccessModifiers(Field field) {
         int modifiers = field.getModifiers();

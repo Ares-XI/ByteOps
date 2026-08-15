@@ -1,9 +1,11 @@
 package io.byteops.internal.format.functional;
 
+import io.byteops.internal.InternalBootManager;
 import io.byteops.internal.exceptions.ModifyFormatException;
 import io.byteops.internal.exceptions.ModifyInternalException;
 import io.byteops.internal.format.FunctionalModifier;
 import io.byteops.internal.util.DescriptorFormat;
+import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
@@ -11,6 +13,7 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
+@ApiStatus.Internal
 public final class InterfaceImplementation implements FunctionalModifier {
     private final Class<?> interfaceClass;
 
@@ -18,7 +21,7 @@ public final class InterfaceImplementation implements FunctionalModifier {
     public byte[] modify(byte[] classBytes) {
         try {
             if (classBytes == null || classBytes.length == 0) {
-                new ModifyInternalException("class bytes are invalid").printStackTrace(System.err);
+                new ModifyInternalException("class bytes are invalid").printStackTrace(InternalBootManager.getInstance().getPrintStream());
                 return classBytes;
             }
 
@@ -44,7 +47,7 @@ public final class InterfaceImplementation implements FunctionalModifier {
 
             return result;
         } catch (Throwable t) {
-            t.printStackTrace(System.err);
+            t.printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return classBytes;
         }
     }
@@ -64,7 +67,7 @@ public final class InterfaceImplementation implements FunctionalModifier {
             String signature = methodName + methodDesc;
 
             boolean found = existingMethods.contains(signature);
-            if (!found) new ModifyFormatException("Method " + signature + " from interface " + interfaceClass.getName() + " NOT found in class").printStackTrace(System.err);
+            if (!found) new ModifyFormatException("Method " + signature + " from interface " + interfaceClass.getName() + " NOT found in class").printStackTrace(InternalBootManager.getInstance().getPrintStream());
         }
     }
 }

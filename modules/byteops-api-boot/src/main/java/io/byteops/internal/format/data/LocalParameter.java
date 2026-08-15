@@ -1,7 +1,10 @@
 package io.byteops.internal.format.data;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.reflect.Parameter;
 
+@ApiStatus.Internal
 public final class LocalParameter {
     private final Parameter parameter;
 

@@ -1,11 +1,13 @@
 package io.byteops.internal.util.visitor;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
+@ApiStatus.Internal
 public final class InjectMethodVisitor extends MethodVisitor {
     private final String targetName;
     private final String modifyName;

@@ -47,48 +47,6 @@
                         <goals><goal>shade</goal></goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>module-info.class</exclude>
-                                        <exclude>META-INF/versions/*/module-info.class</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.moditect</groupId>
-                <artifactId>moditect-maven-plugin</artifactId>
-                <version>1.1.0</version>
-                <executions>
-                    <execution>
-                        <id>add-module-info</id>
-                        <phase>package</phase>
-                        <goals><goal>add-module-info</goal></goals>
-                        <configuration>
-                            <overwriteExistingFiles>true</overwriteExistingFiles>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                            <modules>
-                                <module>
-                                    <file>${project.build.directory}/${project.artifactId}-${project.version}.jar</file>
-                                    <moduleInfoSource>
-                                        module byteops.api.modify {
-                                            exports io.byteops.modify;
-                                            exports io.byteops.modify.util;
-                                            requires java.instrument;
-                                        }
-                                    </moduleInfoSource>
-                                </module>
-                            </modules>
                         </configuration>
                     </execution>
                 </executions>

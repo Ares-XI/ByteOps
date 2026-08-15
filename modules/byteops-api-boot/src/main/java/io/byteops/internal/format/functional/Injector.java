@@ -1,5 +1,6 @@
 package io.byteops.internal.format.functional;
 
+import io.byteops.internal.InternalBootManager;
 import io.byteops.modify.Arg;
 import io.byteops.modify.Inject;
 import io.byteops.modify.Local;
@@ -12,6 +13,7 @@ import io.byteops.internal.format.data.ProvideMethod;
 import io.byteops.internal.instrumentation.JarClassLoader;
 import io.byteops.internal.util.DescriptorFormat;
 import io.byteops.internal.util.visitor.InjectMethodVisitor;
+import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
@@ -20,7 +22,8 @@ import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public final class InjectMethod {
+@ApiStatus.Internal
+public final class Injector {
     private final java.lang.reflect.Method method;
     private final Class<?> targetClass;
     private final Inject annotation;
@@ -37,7 +40,7 @@ public final class InjectMethod {
     private MethodNode preparedTargetMethod;
     private List<AbstractInsnNode> preparedPoints;
 
-    public InjectMethod(java.lang.reflect.Method method, Class<?> targetClass, ProvideField[] provideFields, ExtendField[] extendFields, ProvideMethod[] provideMethods, ExtendMethod[] extendMethods, ArgumentParameter[] argumentParams, LocalParameter[] localParameters) {
+    public Injector(java.lang.reflect.Method method, Class<?> targetClass, ProvideField[] provideFields, ExtendField[] extendFields, ProvideMethod[] provideMethods, ExtendMethod[] extendMethods, ArgumentParameter[] argumentParams, LocalParameter[] localParameters) {
         this.method = method;
         this.targetClass = targetClass;
         this.annotation = method.getAnnotation(Inject.class);
@@ -96,14 +99,14 @@ public final class InjectMethod {
     }
 
     private void extractMethodInstructions() {
-        byte[] mixinBytes = JarClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
-        if (mixinBytes == null) {
-            new ModifyInternalException("[Inject] mixinBytes = null for " + method.getName()).printStackTrace(System.err);
+        byte[] classBytes = JarClassLoader.getInstance().getClassBytes(method.getDeclaringClass().getName());
+        if (classBytes == null) {
+            new ModifyInternalException("[Inject] classBytes = null for " + method.getName()).printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return;
         }
 
         String injectorDesc = DescriptorFormat.getMethodDescriptor(method);
-        new ClassReader(mixinBytes).accept(new ClassVisitor(Opcodes.ASM9) {
+        new ClassReader(classBytes).accept(new ClassVisitor(Opcodes.ASM9) {
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                 if (name.equals(method.getName()) && desc.equals(injectorDesc)) return visitor;
@@ -111,7 +114,7 @@ public final class InjectMethod {
             }
         }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
-        if (visitor.instructions == null) new ModifyInternalException("instructions is null for " + method.getName()).printStackTrace(System.err);
+        if (visitor.instructions == null) new ModifyInternalException("instructions is null for " + method.getName()).printStackTrace(InternalBootManager.getInstance().getPrintStream());
     }
 
     private MethodNode createInjectorMethodNode(String name, boolean targetStatic) {
@@ -178,7 +181,7 @@ public final class InjectMethod {
         if (index == -1) return allPoints;
         else if (index >= 0 && index < allPoints.size()) return Collections.singletonList(allPoints.get(index));
         else {
-            new ModifyInternalException("Index out of bounds: " + index + " (found " + allPoints.size() + ")").printStackTrace(System.err);
+            new ModifyInternalException("Index out of bounds: " + index + " (found " + allPoints.size() + ")").printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return Collections.emptyList();
         }
     }
@@ -416,7 +419,7 @@ public final class InjectMethod {
             int localIndex = lp.parameter().getAnnotation(Local.class).value();
             int rawSlot = resolveLocalSlot(targetMethod, localIndex);
             if (rawSlot == -1) {
-                new ModifyInternalException("@Local(" + localIndex + ") not found in " + targetMethod.name).printStackTrace(System.err);
+                new ModifyInternalException("@Local(" + localIndex + ") not found in " + targetMethod.name).printStackTrace(InternalBootManager.getInstance().getPrintStream());
                 continue;
             }
             callCode.add(new VarInsnNode(DescriptorFormat.getLoadOpcode(lp.parameter().getType()), rawSlot));
@@ -435,7 +438,7 @@ public final class InjectMethod {
 
     private int resolveLocalSlot(MethodNode targetMethod, int localIndex) {
         if (targetMethod.localVariables == null || targetMethod.localVariables.isEmpty()) {
-            new ModifyInternalException("No LocalVariableTable in " + targetMethod.name + ". Compile with -g or -parameters.").printStackTrace(System.err);
+            new ModifyInternalException("No LocalVariableTable in " + targetMethod.name + ". Compile with -g or -parameters.").printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return -1;
         }
 
@@ -455,7 +458,7 @@ public final class InjectMethod {
         uniqueLocals.sort(Comparator.comparingInt(lvn -> lvn.index));
 
         if (localIndex < 0 || localIndex >= uniqueLocals.size()) {
-            new ModifyInternalException("@Local(" + localIndex + ") out of bounds. " + "Available locals: " + uniqueLocals.size()).printStackTrace(System.err);
+            new ModifyInternalException("@Local(" + localIndex + ") out of bounds. " + "Available locals: " + uniqueLocals.size()).printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return -1;
         }
 
@@ -742,12 +745,12 @@ public final class InjectMethod {
         }
 
         if (preparedTargetMethod == null) {
-            new ModifyInternalException("inject target method not found: " + targetSig.method() + targetDesc).printStackTrace(System.err);
+            new ModifyInternalException("inject target method not found: " + targetSig.method() + targetDesc).printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return;
         }
 
         if ((preparedTargetMethod.access & ACC_ABSTRACT) != 0 || (preparedTargetMethod.access & ACC_NATIVE) != 0) {
-            new ModifyInternalException("inject target method is abstract/native: " + targetSig.method() + targetDesc).printStackTrace(System.err);
+            new ModifyInternalException("inject target method is abstract/native: " + targetSig.method() + targetDesc).printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return;
         }
 
@@ -799,7 +802,7 @@ public final class InjectMethod {
             classNode.accept(writer);
             return writer.toByteArray();
         } catch (Throwable t) {
-            t.printStackTrace(System.err);
+            t.printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return classBytes;
         }
     }

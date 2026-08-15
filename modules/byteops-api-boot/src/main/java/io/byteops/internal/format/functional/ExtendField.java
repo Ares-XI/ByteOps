@@ -1,13 +1,16 @@
 package io.byteops.internal.format.functional;
 
+import io.byteops.internal.InternalBootManager;
 import io.byteops.internal.exceptions.ModifyInternalException;
 import io.byteops.internal.format.FunctionalModifier;
 import io.byteops.internal.util.DescriptorFormat;
+import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+@ApiStatus.Internal
 public final class ExtendField implements FunctionalModifier {
     private final Field field;
     private Object constantValue;
@@ -36,7 +39,7 @@ public final class ExtendField implements FunctionalModifier {
             else if (value instanceof Character) constantValue = value;
             else if (value instanceof Boolean) constantValue = ((Boolean) value) ? 1 : 0;
         } catch (Exception e) {
-            new ModifyInternalException(e).printStackTrace(System.err);
+            new ModifyInternalException(e).printStackTrace(InternalBootManager.getInstance().getPrintStream());
         }
     }
 
@@ -66,7 +69,7 @@ public final class ExtendField implements FunctionalModifier {
             reader.accept(visitor, ClassReader.EXPAND_FRAMES);
             return writer.toByteArray();
         } catch (Throwable t) {
-            t.printStackTrace(System.err);
+            t.printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return classBytes;
         }
     }

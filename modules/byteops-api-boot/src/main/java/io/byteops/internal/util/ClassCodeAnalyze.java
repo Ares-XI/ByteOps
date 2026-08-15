@@ -1,10 +1,12 @@
 package io.byteops.internal.util;
 
 import io.byteops.internal.instrumentation.JarClassLoader;
+import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.*;
 
 import java.util.*;
 
+@ApiStatus.Internal
 public final class ClassCodeAnalyze {
     private static final Set<String> IGNORED_CLASSES = Set.of(
             "io/byteops/modify/Arg", "io/byteops/modify/Extend",
@@ -40,7 +42,7 @@ public final class ClassCodeAnalyze {
                 continue;
             } catch (ClassNotFoundException | LinkageError ignored) {}
 
-            byte[] depBytes = JarClassLoader.instance.getClassBytes(binaryName);
+            byte[] depBytes = JarClassLoader.getInstance().getClassBytes(binaryName);
             if (depBytes == null) continue;
 
             result.add(path);

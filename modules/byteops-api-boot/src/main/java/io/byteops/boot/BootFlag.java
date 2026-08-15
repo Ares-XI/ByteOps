@@ -1,5 +1,7 @@
 package io.byteops.boot;
 
+import java.io.PrintStream;
+
 public abstract class BootFlag {
     public static final class Name extends BootFlag {
         final String name;
@@ -25,11 +27,27 @@ public abstract class BootFlag {
         }
     }
 
+    public static final class LogParser extends BootFlag {
+        final boolean logParser;
+
+        public LogParser(boolean logParser) {
+            this.logParser = logParser;
+        }
+    }
+
     public static final class BlockedClass extends BootFlag {
         final Class<?> blockedClass;
 
         public BlockedClass(Class<?> blockedClass) {
             this.blockedClass = blockedClass;
+        }
+    }
+
+    public static final class PrintedStream extends BootFlag {
+        final PrintStream printStream;
+
+        public PrintedStream(PrintStream printStream) {
+            this.printStream = printStream;
         }
     }
 

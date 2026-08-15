@@ -1,16 +1,19 @@
 package io.byteops.internal.format.functional;
 
+import io.byteops.internal.InternalBootManager;
 import io.byteops.internal.format.FunctionalModifier;
 import io.byteops.internal.format.data.ProvideField;
 import io.byteops.internal.format.data.ProvideMethod;
 import io.byteops.internal.instrumentation.JarClassLoader;
 import io.byteops.internal.util.DescriptorFormat;
 import io.byteops.internal.util.visitor.ExtendMethodVisitor;
+import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
 
+@ApiStatus.Internal
 public final class ExtendMethod implements FunctionalModifier {
     private final Method method;
     private final Class<?> targetClass;
@@ -63,10 +66,10 @@ public final class ExtendMethod implements FunctionalModifier {
     }
 
     private void extractMethodInstructions() {
-        byte[] mixinBytes = JarClassLoader.instance.getClassBytes(method.getDeclaringClass().getName());
-        if (mixinBytes == null) return;
+        byte[] classBytes = JarClassLoader.getInstance().getClassBytes(method.getDeclaringClass().getName());
+        if (classBytes == null) return;
 
-        ClassReader reader = new ClassReader(mixinBytes);
+        ClassReader reader = new ClassReader(classBytes);
         reader.accept(new ClassVisitor(Opcodes.ASM9) {
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
@@ -113,7 +116,7 @@ public final class ExtendMethod implements FunctionalModifier {
             reader.accept(vis, ClassReader.EXPAND_FRAMES);
             return writer.toByteArray();
         } catch (Throwable t) {
-            t.printStackTrace(System.err);
+            t.printStackTrace(InternalBootManager.getInstance().getPrintStream());
             return classBytes;
         }
     }

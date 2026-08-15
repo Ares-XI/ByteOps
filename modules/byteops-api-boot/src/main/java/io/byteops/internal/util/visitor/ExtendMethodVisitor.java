@@ -1,5 +1,6 @@
 package io.byteops.internal.util.visitor;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -8,6 +9,7 @@ import org.objectweb.asm.tree.*;
 
 import java.util.*;
 
+@ApiStatus.Internal
 public final class ExtendMethodVisitor extends MethodVisitor {
     public InsnList instructions;
     public final List<TryCatchBlockNode> tryCatchBlocks = new ArrayList<>();

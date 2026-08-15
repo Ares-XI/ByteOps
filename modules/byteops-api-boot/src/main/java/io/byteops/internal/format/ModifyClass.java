@@ -2,11 +2,13 @@ package io.byteops.internal.format;
 
 import io.byteops.internal.format.data.ProvideField;
 import io.byteops.internal.format.data.ProvideMethod;
-import io.byteops.internal.format.functional.InjectMethod;
+import io.byteops.internal.format.functional.Injector;
 import io.byteops.internal.format.functional.InterfaceImplementation;
 import io.byteops.internal.format.functional.ExtendField;
 import io.byteops.internal.format.functional.ExtendMethod;
+import org.jetbrains.annotations.ApiStatus;
 
+@ApiStatus.Internal
 public final class ModifyClass {
     private final Class<?> modifyClass;
     private final Class<?> targetClass;
@@ -14,7 +16,7 @@ public final class ModifyClass {
     private final ExtendField[] extendFields;
     private final ProvideMethod[] provideMethods;
     private final ExtendMethod[] extendMethods;
-    private final InjectMethod[] injectMethods;
+    private final Injector[] injectMethods;
     private final InterfaceImplementation[] implementations;
 
     public ModifyClass(
@@ -24,7 +26,7 @@ public final class ModifyClass {
             ExtendField[] extendFields,
             ProvideMethod[] provideMethods,
             ExtendMethod[] extendMethods,
-            InjectMethod[] injectMethods,
+            Injector[] injectMethods,
             InterfaceImplementation[] interfaceImplementations
     ) {
         this.modifyClass = modifyClass;
@@ -61,7 +63,7 @@ public final class ModifyClass {
         return extendMethods;
     }
 
-    public InjectMethod[] getInjectors() {
+    public Injector[] getInjectors() {
         return injectMethods;
     }
 
