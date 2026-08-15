@@ -18,24 +18,16 @@ This module provides:
 
 Maven:
 ```xml
-<repository>
-    <id>github</id>
-    <name>GitHub Packages</name>
-    <url>https://maven.pkg.github.com/Ares-XI</url>
-</repository>
+not done yet
 ```
 Gradle(groovy):
 ```groovy
-maven {
-    url 'https://jitpack.io' 
-}
+not done yet
 ```
 
 Gradle(kotlin script):
 ```kotlin
-maven { 
-    url = uri("https://jitpack.io")
-}
+not done yet
 ```
 
 ---
@@ -44,21 +36,17 @@ maven {
 
 Maven:
 ```xml
-<dependency>
-    <groupId>io.byteops</groupId>
-    <artifactId>api-boot</artifactId>
-    <version>1.0.0</version>
-</dependency>
+not done yet
 ```
 
 Gradle(groovy):
 ```groovy
-implementation 'com.github.Ares-XI.ByteOps:api-boot:1.0.0'
+not done yet
 ```
 
 Gradle(kotlin script)
 ```kotlin
-implementation("com.github.Ares-XI.ByteOps:api-boot:1.0.0")
+not done yet
 ```
 
 ---
@@ -187,7 +175,7 @@ Start parsing
 ---
 
 ## See Also:
-- [Modify API](../api-modify/README.md) — annotation-based modification API
+- [Modify API](../byteops-api-modify/README.md) — annotation-based modification API
 - [Examples](../../examples) - package with some examples and help how to use `api-boot` and `api-modify`
 
 ---
