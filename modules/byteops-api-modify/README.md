@@ -64,17 +64,18 @@ Maven:
     <groupId>com.github.Ares-XI.ByteOps</groupId>
     <artifactId>byteops-api-modify</artifactId>
     <version>v1.0.0-alpha.1</version>
+    <scope>provided</scope>
 </dependency>
 ```
 
 Gradle(groovy):
 ```groovy
-implementation 'com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1'
+compoleOnly 'com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1'
 ```
 
 Gradle(kotlin script)
 ```kotlin
-implementation("com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1")
+compoleOnly("com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1")
 ```
 
 [**Back to info**](#info)

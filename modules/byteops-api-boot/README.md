@@ -49,6 +49,7 @@ Maven:
     <groupId>com.github.Ares-XI.ByteOps</groupId>
     <artifactId>byteops-api-boot</artifactId>
     <version>v1.0.0-alpha.1</version>
+    <scope>compile</scope>
 </dependency>
 ```
 
