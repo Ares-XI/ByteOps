@@ -79,12 +79,13 @@ io.byteops.boot.BootManager.init(Instrumentation inst, File[] libs, File[] class
 
 ### Flags to start:
 
-| Flag                                       | Description                                 | Cardinality                                              | Default Value          |
-|--------------------------------------------|---------------------------------------------|----------------------------------------------------------|------------------------|
-| `BootFlag.Name(String name)`               | Sets the agent name                         | Once (last wins)                                         | `"ByteOps"`            |
-| `BootFlag.Version(String version)`         | Sets the agent version                      | Once (last wins)                                         | `"1.0-alpha-build-0"`  |
-| `BootFlag.ConfigName(String name)`         | JSON config filename in JARs with modifings | Once (last wins)                                         | `"byte-ops"`           |
-| `BootFlag.BlockedClass(Class<?> classRef)` | Blocks class from modification              | Multiple(one boot flag(blockedClass) -> +1 blockedClass) | See default list below |
+| Flag                                       | Description                                                         | Cardinality                                              | Default Value           |
+|--------------------------------------------|---------------------------------------------------------------------|----------------------------------------------------------|-------------------------|
+| `BootFlag.Name(String name)`               | Sets the agent name                                                 | Once (last wins)                                         | `"ByteOps"`             |
+| `BootFlag.Version(String version)`         | Sets the agent version                                              | Once (last wins)                                         | `"1.0-alpha-build-0"`   |
+| `BootFlag.ConfigName(String name)`         | JSON config filename in JARs with modifings                         | Once (last wins)                                         | `"byte-ops"`            |
+| `BootFlag.BlockedClass(Class<?> classRef)` | add a class that will be protected from modification                | Multiple(one boot flag(blockedClass) -> +1 blockedClass) | See default list below  |
+| `BootFlag.LogParser(boolean b)`            | if `true`, parser will log info about serializing `@Modify classes` | Multiple(one boot flag(blockedClass) -> +1 blockedClass) | ""                      |
 
 ### Packages which blocked by default:
 ```
