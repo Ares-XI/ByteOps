@@ -30,16 +30,26 @@
 
 Maven:
 ```xml
-not done yet
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
 ```
+
 Gradle(groovy):
 ```groovy
-not done yet
+maven { 
+    url 'https://jitpack.io' 
+}
 ```
 
 Gradle(kotlin script):
 ```kotlin
-not done yet
+maven { 
+    url = uri("https://jitpack.io") 
+}
 ```
 
 [**Back to info**](#info)
@@ -50,17 +60,21 @@ not done yet
 
 Maven:
 ```xml
-not done yet
+<dependency>
+    <groupId>com.github.Ares-XI.ByteOps</groupId>
+    <artifactId>byteops-api-modify</artifactId>
+    <version>v1.0.0-alpha.1</version>
+</dependency>
 ```
 
 Gradle(groovy):
 ```groovy
-not done yet
+implementation 'com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1'
 ```
 
 Gradle(kotlin script)
 ```kotlin
-not done yet
+implementation("com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1")
 ```
 
 [**Back to info**](#info)
