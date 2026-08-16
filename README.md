@@ -24,4 +24,4 @@ Used in custom Java Agents. Contains all instruments to launch ByteOps with argu
 ### `byteops-modify` — class modification API
 Used in projects with modifications. Contains annotations for modifying classes.
 
-[Modify API Info →](modules/byteops-api-mofify/README.md)
+[Modify API Info →](modules/byteops-api-modify/README.md)
