@@ -70,12 +70,12 @@ Maven:
 
 Gradle(groovy):
 ```groovy
-compoleOnly 'com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1'
+compileOnly 'com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1'
 ```
 
 Gradle(kotlin script)
 ```kotlin
-compoleOnly("com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1")
+compileOnly("com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1")
 ```
 
 [**Back to info**](#info)
