@@ -113,7 +113,7 @@ If you don't know the value of the config name parameter at startup, use the con
 
 [`@Modify`](src/main/java/io/byteops/modify/Modify.java) is a parent annotation which use, to get class which will be modified.
 `@Modify` must be:
-- annotated to ABSTRACT class(if you annotate it into class or interface ot will cause `ModifyFormatExepion` in runtime)
+- annotated to ABSTRACT class(if you annotate it into a class or interface it will cause `ModifyFormatExepion` in runtime)
 - contain class reference which will be modified.
 
 **Example class which will be modified:**
