@@ -84,7 +84,7 @@ io.byteops.boot.BootManager.init(Instrumentation inst, File[] libs, File[] class
 |---------------------------------------------|---------------------------------------------------------------------|----------------------------------------------------------|------------------------|
 | `BootFlag.Name(String name)`                | Sets the agent name                                                 | Once (last wins)                                         | `"ByteOps"`            |
 | `BootFlag.Version(String version)`          | Sets the agent version                                              | Once (last wins)                                         | `"1.0-alpha-build-0"`  |
-| `BootFlag.ConfigName(String name)`          | JSON config filename in JARs with modifings                         | Once (last wins)                                         | `"byte-ops"`           |
+| `BootFlag.ConfigName(String name)`          | JSON config filename in JARs with modifications                         | Once (last wins)                                         | `"byte-ops"`           |
 | `BootFlag.BlockedClass(Class<?> classRef)`  | add a class that will be protected from modification                | Multiple(one boot flag(blockedClass) -> +1 blockedClass) | See default list below |
 | `BootFlag.LogParser(boolean b)`             | if `true`, parser will log info about serializing `@Modify classes` | Once (last wins)                                         | `true`                 |
 | `BootFlag.PrintedStrean(PrintStram stream)` | Sets the PrintStream where byteops will write log/warns/errors      | Once (last wins)                                         | `System.out`           |
