@@ -70,12 +70,12 @@ Maven:
 
 Gradle(groovy):
 ```groovy
-compoleOnly 'com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1'
+compileOnly 'com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1'
 ```
 
 Gradle(kotlin script)
 ```kotlin
-compoleOnly("com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1")
+compileOnly("com.github.Ares-XI.ByteOps:byteops-api-modify:v1.0.0-alpha.1")
 ```
 
 [**Back to info**](#info)
@@ -113,7 +113,7 @@ If you don't know the value of the config name parameter at startup, use the con
 
 [`@Modify`](src/main/java/io/byteops/modify/Modify.java) is a parent annotation which use, to get class which will be modified.
 `@Modify` must be:
-- annotated to ABSTRACT class(if you annotate it into class or interface ot will cause `ModifyFormatExepion` in runtime)
+- annotated to ABSTRACT class(if you annotate it into a class or interface it will cause `ModifyFormatExepion` in runtime)
 - contain class reference which will be modified.
 
 **Example class which will be modified:**
