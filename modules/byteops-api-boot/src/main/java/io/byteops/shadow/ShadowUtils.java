@@ -15,6 +15,11 @@ import java.nio.file.Files;
 
 @ApiStatus.Internal
 public abstract class ShadowUtils {
+    public static final Class<?> SHADOW_CLASS_LOADER = ShadowClassLoader.class;
+    public static final Class<?> SHADOW_JSON_PARSER = ShadowJsonParser.class;
+    public static final Class<?> SHADOW_CACHE_REGISTRY = ShadowCacheRegistry.class;
+    public static final Class<?> SHADOW_MODIFY_TRANSFORMER = ShadowModifyTransformer.class;
+
     private static boolean isLocked = false;
 
     protected void initAll(File[] libraries) {
@@ -45,7 +50,7 @@ public abstract class ShadowUtils {
     }
 
     private boolean notEqualInstance() {
-        return !getClass().getName().equals(InternalBootManager.class.getName());
+        return !getClass().equals(InternalBootManager.class);
     }
 
     private void registerLibraries(File[] files) {

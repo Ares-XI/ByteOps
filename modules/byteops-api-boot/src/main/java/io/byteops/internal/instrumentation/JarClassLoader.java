@@ -1,6 +1,7 @@
 package io.byteops.internal.instrumentation;
 
 import io.byteops.internal.InternalBootManager;
+import io.byteops.shadow.ShadowUtils;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.io.ByteArrayOutputStream;
@@ -22,7 +23,7 @@ public abstract class JarClassLoader extends URLClassLoader implements AutoClose
     }
 
     protected static void setInstance(JarClassLoader instance) {
-        if(instance.getClass().getName().equals("io.byteops.shadow.ShadowClassLoader")) JarClassLoader.instance = instance;
+        if(instance.getClass().equals(ShadowUtils.SHADOW_CLASS_LOADER)) JarClassLoader.instance = instance;
     }
 
     protected final Map<String, byte[]> byteCache = new ConcurrentHashMap<>();

@@ -3,6 +3,7 @@ package io.byteops.internal.instrumentation;
 
 import com.google.gson.Gson;
 import io.byteops.internal.util.ModifyConfigFormat;
+import io.byteops.shadow.ShadowUtils;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
@@ -16,7 +17,7 @@ public abstract class MultiJsonParser {
     }
 
     protected static void setInstance(MultiJsonParser instance) {
-        if (instance.getClass().getName().equals("io.byteops.shadow.ShadowJsonParser")) MultiJsonParser.instance = instance;
+        if (instance.getClass().equals(ShadowUtils.SHADOW_JSON_PARSER)) MultiJsonParser.instance = instance;
     }
 
     protected final Gson GSON = new Gson();

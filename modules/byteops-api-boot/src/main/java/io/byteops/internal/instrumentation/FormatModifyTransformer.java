@@ -4,6 +4,7 @@ import io.byteops.internal.InternalBootManager;
 import io.byteops.internal.util.ClassCodeAnalyze;
 import io.byteops.internal.exceptions.ModifyInternalException;
 import io.byteops.internal.util.ClassLoaderExtend;
+import io.byteops.shadow.ShadowUtils;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.security.ProtectionDomain;
@@ -19,7 +20,7 @@ public abstract class FormatModifyTransformer {
     }
 
     protected static void setInstance(FormatModifyTransformer instance) {
-        if(instance.getClass().getName().equals("io.byteops.shadow.ShadowModifyTransformer")) FormatModifyTransformer.instance = instance;
+        if(instance.getClass().equals(ShadowUtils.SHADOW_MODIFY_TRANSFORMER)) FormatModifyTransformer.instance = instance;
     }
 
     protected static final List<String> unsupportedPaths = new ArrayList<>();

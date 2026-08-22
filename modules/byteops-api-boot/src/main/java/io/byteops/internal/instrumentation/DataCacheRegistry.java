@@ -1,6 +1,7 @@
 package io.byteops.internal.instrumentation;
 
 import io.byteops.internal.format.ModifyClass;
+import io.byteops.shadow.ShadowUtils;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
@@ -14,7 +15,7 @@ public abstract class DataCacheRegistry {
     }
 
     protected static void setInstance(DataCacheRegistry instance) {
-        if(instance.getClass().getName().equals("io.byteops.shadow.ShadowCacheRegistry")) DataCacheRegistry.instance = instance;
+        if(instance.getClass().equals(ShadowUtils.SHADOW_CACHE_REGISTRY)) DataCacheRegistry.instance = instance;
     }
 
     protected final Set<ModifyClass> modifyClasses = new HashSet<>();
